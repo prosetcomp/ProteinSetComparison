@@ -1,0 +1,39 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "axios": "^0.18.0",
+    "d3": "^5.5.0",
+    "loading-svg": "^1.0.0",
+    "react": "^16.4.1",
+    "react-bootstrap": "^0.32.1",
+    "react-bootstrap-table": "^4.3.1",
+    "react-bootstrap-table-next": "^1.1.1",
+    "react-checkbox-group": "^4.0.1",
+    "react-csv": "^1.0.14",
+    "react-dom": "^16.4.1",
+    "react-loading": "^2.0.3",
+    "react-motion": "^0.5.2",
+    "react-multi-toggle": "^1.1.0",
+    "react-querybuilder": "^1.4.3",
+    "react-radio-group": "^3.0.3",
+    "react-router-dom": "^4.3.1",
+    "react-scripts": "1.1.4",
+    "react-spinners": "^0.4.4",
+    "react-switch": "^3.0.4",
+    "react-switch-button": "^2.3.5",
+    "react-table": "^6.8.6",
+    "react-text-collapse": "^0.5.0",
+    "read-more-react": "^1.0.6",
+    "underscore": "^1.9.1",
+    "venn": "^1.0.2",
+    "venn.js": "^0.2.20"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
+}

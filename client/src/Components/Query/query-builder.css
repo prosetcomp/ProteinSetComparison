@@ -1,0 +1,118 @@
+
+/*Add Query Button*/
+button:focus {outline:0;}
+#root > div > div > div > div.query > div > div > button.ruleGroup-addGroup{
+
+  margin-left: -50px;
+  display: inline-block;
+  margin-right:  4em;
+  background-color: #3399ff;
+  border:1px solid #004d99;
+  color: white;
+  width: 9em;
+  height: 3em;
+  text-align: center;
+  text-decoration: none;
+  font-size: 12px;
+  border-radius: 5px;
+  pointer-events: all;
+  margin-bottom: 0.3em;
+}
+#root > div > div > div > div.query > div > div > button.ruleGroup-addRule{
+  display: none;
+}
+#root > div > div > div > div.query > div > div > select.ruleGroup-combinators {
+  display: none;
+}
+
+#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > button.ruleGroup-addGroup{
+    display: none;
+}
+/*Delete Button*/
+#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > button.ruleGroup-remove,#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div > button{
+    margin-right:  4em;
+    background-color: #cc0000;
+    border:1px solid #990000;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    border-radius: 5px;
+    margin-left: 1.3em;
+    width: 9em;
+    height: 3em;
+
+}
+/*Add Criteria Button*/
+#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > button.ruleGroup-addRule{
+    background-color: #5cb85c;
+    border:1px solid #46a046;
+    color: white;
+    width: 9em;
+    height: 3em;
+   text-align: center;
+   text-decoration: none;
+   display: inline-block;
+   font-size: 12px;
+   border-radius: 5px;
+}
+/*Combinator*/
+#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > select{
+  appearance: none;
+  background-color: #e68a00;
+  color: white;
+  font-size: 14px;
+  border: none;
+  margin-right: 15px;
+  border:none;
+  width: 2.8em;
+  height: 2.5em;
+  padding: 5px;
+
+
+
+}
+#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div > select.rule-operators{
+  display: none;
+}
+#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div:not(:nth-child(4)){
+  border: none;
+}
+.rule,
+.ruleGroup .ruleGroup {
+  margin-top: 0.5rem;
+  border: 0.1em solid black;
+  margin-left: 0.5rem;
+  background-color:#b3d1ff;
+  margin-bottom: 1em;
+  border-radius: 5px;
+ }
+
+.ruleGroup {
+  padding: 0.5rem;
+
+  background:  #99c2ff;
+}
+#submitButton{
+  margin-top: 2em;
+  margin-left: -50px;
+  display: inline-block;
+  margin-right:  4em;
+  background-color: #3399ff;
+  border:1px solid #004d99;
+  color: white;
+  width: 9em;
+  height: 2.8em;
+  text-align: center;
+  text-decoration: none;
+  font-size: 12px;
+  border-radius: 5px;
+  margin-bottom: 2em;
+}
+#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div > button{
+  width: 6em;
+  height: 2em;
+  padding: 3px 8px;
+
+}

@@ -1,0 +1,120 @@
+
+
+#a_venn3{
+  background-color:#9be49b;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+#b_venn3{
+
+  background-color:#ffd6b3;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+#d_venn3{
+
+  background-color:#a8d2f0;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+
+}
+#f_venn3{
+  background-color:#cfd4d5;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+#e_venn3{
+  background-color:#a2daca;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+#c_venn3{
+  background-color:#d2dca8;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+#g_venn3{
+  background-color:#b9e0a2;
+  width: 90px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+
+
+  input[type='checkbox'].d_upset3 ,input[type='checkbox'].b_upset3,input[type='checkbox'].a_upset3{
+    -webkit-appearance:none;
+    width:15em;
+    height:2.5em;
+    margin-left: 3em;
+    margin-bottom: -0.8em;
+    margin-right: 0.49em;
+    outline: none;
+    position:relative;
+
+
+
+  }
+  input[type='checkbox'].f_upset3,input[type='checkbox'].e_upset3,input[type='checkbox'].c_upset3{
+    -webkit-appearance:none;
+    width:15em;
+    height:2.5em;
+    margin-left: 4.9em;
+    margin-bottom: -0.8em;
+    margin-right: 0.49em;
+    outline: none;
+    position:relative;
+
+
+
+  }
+  input[type='checkbox'].g_upset3{
+    -webkit-appearance:none;
+    width:15em;
+    height:2.5em;
+    margin-left:6.7em;
+    margin-bottom: -0.8em;
+    margin-right: 0.49em;
+    outline: none;
+    position:relative;
+
+
+
+  }
+.btnd:active,
+  .btnd:focus,
+  .btnd.active {
+    background-image: none;
+    outline: 0;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+  }
+#row3{
+  margin-top: 0.76em ;
+  position: relative;
+
+}
+#row4,#row5{
+    margin-top: 0.66em ;
+    position: relative;
+
+
+  }
+#row6{
+  margin-top: 0.60em ;
+  position: relative;
+
+
+}

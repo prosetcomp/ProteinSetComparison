@@ -1,0 +1,69 @@
+.btn btn-success react-bs-table-csv-btn  hidden-print{
+  background-color: black;
+}
+button:#uncontrolled-tab-example-pane-5 {
+  background-color: black;
+
+}
+#a{
+  background-color:#ffd6b3;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+#b{
+
+  background-color:#a8d2f0;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+}
+#c{
+
+  background-color:#cfd4d5;
+  width: 80px;
+  height: 30px;
+  margin-right: 5px;
+  margin-top: 10px;
+
+}
+
+
+
+  input[type='checkbox'].a_upset ,input[type='checkbox'].b_upset,input[type='checkbox'].c_upset{
+      -webkit-appearance:none;
+      width:15em;
+      height:2.5em;
+      margin-left: 3em;
+      margin-bottom: -0.9em;
+      margin-right: 0.49em;
+      outline: none;
+      position:relative;
+}
+
+
+  input[type='checkbox'].c_upset{
+    -webkit-appearance:none;
+
+
+
+    margin-left:4.9em;
+
+    margin-right: 0.5em;
+
+  }
+  .btnd:active,
+  .btnd:focus,
+  .btnd.active {
+    background-image: none;
+    outline: 0;
+    -webkit-box-shadow: none;
+            box-shadow: none;
+  }
+  #row0,#row1,#row2{
+    margin-top: 0.3em;
+    position: relative;
+
+  }
