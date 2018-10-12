@@ -116,3 +116,54 @@ button:focus {outline:0;}
   padding: 3px 8px;
 
 }
+.deleteFileButton{
+  margin-right:  4em;
+  background-color: #cc0000;
+  border:1px solid #990000;
+  color: white;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  border-radius: 5px;
+  width: 9em;
+  height: 3em;
+}
+.addFileButton {
+  margin-top: 1em;
+  display: inline-block;
+  margin-right:  0.5em;
+  background-color: #3399ff;
+  border:1px solid #004d99;
+  color: white;
+  width: 9em;
+  height: 3em;
+  text-align: center;
+  text-decoration: none;
+  font-size: 12px;
+  border-radius: 5px;
+  pointer-events: all;
+  margin-bottom: 1em;
+  margin-left: -5em;
+
+}
+.or_tag{
+  margin-right: 4.5em;
+  font-weight: bold;
+}
+.inputs{
+background-color:#99c2ff;
+padding: 0.3rem;
+}
+.selectFilePart{
+  margin-top: 0.5rem;
+  border: 0.1em solid black;
+  margin-left: 0.5em;
+  margin-right: 0.5em;
+  margin-bottom: -10em;
+  background-color:#b3d1ff;
+  margin-bottom: 1em;
+  border-radius: 5px;
+  padding: 0.5em;
+
+}

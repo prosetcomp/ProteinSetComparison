@@ -6,11 +6,15 @@ package com.server.server.service;
 import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import javax.sql.DataSource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import org.springframework.beans.factory.annotation.Autowired;
 import java.io.*;
+
 import java.util.*;
+import org.springframework.web.context.request.RequestContextHolder;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -19,8 +23,12 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.springframework.stereotype.Service;
 import java.util.regex.*;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.server.server.model.PROTEIN;
 import com.server.server.repository.ProteinRepositoryCustom;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import java.util.HashMap;
 
 
@@ -35,19 +43,222 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
        int map_size;
        int temp_map_size=0;
      
+/*        public void iterateJsonObject(List<List<String>> key_value_list, String id_json, Connection connection) throws SQLException{
+        		List<List<CriteriaQuery>> criteriaList = new ArrayList<>();
+           sessionID=id_json;
+           conn=connection;
+           map_size= key_value_list.size();
+          System.out.println("key_value_list_size"+key_value_list.size());
+           //Set Up Criteria For Each Query
+            for(int a = 0 ;a< key_value_list.size();a++) {
+				int variable=1;
+				  List<String> list_element= key_value_list.get(a);
+				  List<CriteriaQuery> temp_criteria = new ArrayList<>();
+				  for (int b=0;b<list_element.size();b++){
+					  String[] parts =list_element.get(b).split("=");
+					  String key=parts[0];
+					  String value =parts[1];
+					
+						Pattern pattern = Pattern.compile("(?i)(GO:[0]+|GO:)");
+						Pattern pattern2 = Pattern.compile("(?i)(pf[0]+|pf)");
+						Pattern pattern3 = Pattern.compile("(?i)(ipr[0]+|ipr)");
+						Pattern pattern4 = Pattern.compile("(?i)(R-[A-Z]{3}-[0]+|R-[A-Z]{3}-)");
+						Matcher matcher = pattern.matcher(value);
+						Matcher matcher2 = pattern2.matcher(value);
+						Matcher matcher3 = pattern3.matcher(value);
+						Matcher matcher4 = pattern4.matcher(value);
+						String regex_part = null;
+						if (matcher.find())
+						{
+							regex_part=matcher.group();
+							value=value.replace(regex_part, "");
+						   
+						}
+						else if (matcher2.find())
+						{
+							regex_part=matcher2.group();
+							value=value.replace(regex_part, "");
+						   
+						}
+						
+						else if (matcher3.find())
+						{
+							regex_part=matcher3.group();
+							value=value.replace(regex_part, "");
+						   
+						}
+						else if (matcher4.find())
+						{
+							regex_part=matcher4.group();
+							value=value.replace(regex_part, "");
+						   
+						} 
 
+
+
+						  String regex = "[0-9]+";
+						  if(value.matches(regex)) {
+							  int foo = Integer.parseInt(value);
+							  
+							  if(key.equals("disease_accession")) {
+					            	CriteriaQuery cq =searchProteinbyDiseaseAcc (foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("disease_mim")) {
+					            	CriteriaQuery cq =searchProteinbyDiseaseMim (foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("domain_iprid")) {
+					            	CriteriaQuery cq =searchProteinbyDomainIpr_id(foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("disease_mim")) {
+					            	CriteriaQuery cq =searchProteinbyDiseaseMim(foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("domain_pfam")) {
+					            	CriteriaQuery cq =searchProteinbyDomainPfam(foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("publication_pmid")) {
+					            	CriteriaQuery cq =searchProteinbyPublicationPmid(foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("pathway_id")) {
+					            	System.out.println("PATHWAY_ID");
+							CriteriaQuery cq =searchProteinbyPathwayId(foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("protein_isreviewed")) {
+					            	CriteriaQuery cq =searchProteinbyProteinIs_reviewed(foo);
+					            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("protein_taxonid")) {
+					            	CriteriaQuery cq =searchProteinbyProteinTaxon_id(foo);
+					            	temp_criteria.add(cq);
+					           }
+							else if (key.equals("go_id")) {
+					            	CriteriaQuery cq =searchProteinbyGo_termsTerm_id(foo);
+					            	temp_criteria.add(cq);
+					           }  
+								criteriaList.add(variable-1, temp_criteria);;
+								
+						  }
+						  else {
+						
+						      if(key.equals("disease_acronym")) {
+								   CriteriaQuery cq =searchProteinbyDiseaseAcronym (value);
+			        	            	   temp_criteria.add(cq);
+		        	               } 
+							  else if (key.equals("disease_identifier")) {
+						            	CriteriaQuery cq =searchProteinbyDiseaseIdentifier(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("goterms_name")) {
+						            	CriteriaQuery cq =searchProteinbyGo_termsName(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("domain_name")) {
+						            	CriteriaQuery cq =searchProteinbyDomainName(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("taxon_name")) {
+						            	CriteriaQuery cq = searchProteinbyTaxonName(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("pdb_pdb")) {
+						            	CriteriaQuery cq = searchProteinbyProtein_pdbPdb(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("pdb_chain")) {
+						            	CriteriaQuery cq = searchProteinbyProtein_pdbChain(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("protein_name")) {
+						            	CriteriaQuery cq = searchProteinbyProteinName(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("secondary_accession")) {
+						            	CriteriaQuery cq = searchProteinbyPrimary_SecondarySecondaryAccession(value);
+						            	temp_criteria.add(cq);
+						      }
+							  else if (key.equals("publication_title")) {
+						            	CriteriaQuery cq = searchProteinbyPublicationTitle(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("pathway_name")) {
+						            	CriteriaQuery cq = searchProteinbyPathwayName(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("protein_accession")) {
+						            	CriteriaQuery cq = searchProteinbyProteinAccession(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("protein_id")) {
+						            	CriteriaQuery cq = searchProteinbyProteinId(value);
+						            	temp_criteria.add(cq);
+					           }
+							  else if (key.equals("allergome")||key.equals("biocyc") || key.equals("biogrid") || 
+									  key.equals("biomuta") || key.equals("chembl") || key.equals("dictybase")
+									  || key.equals("drugbank") || key.equals("echobase") || key.equals("embl")
+									  || key.equals("embl-cds") || key.equals("ensembl") || key.equals("ensemblgenome")
+									  || key.equals("ensemblgenome_pro") || key.equals("ensemblgenome_trs") || key.equals("ensembl_pro")
+									  || key.equals("ensembl_trs") || key.equals("flybase") || key.equals("genecards")
+									  || key.equals("genedb") || key.equals("geneid") || key.equals("gene_name")
+									  || key.equals("gene_orderedlocusname") || key.equals("gene_orfname") || key.equals("genereviews") 
+									  || key.equals("gene_synonym") || key.equals("gi") || key.equals("hgnc")
+									  || key.equals("kegg") || key.equals("orthodb") || key.equals("peroxibase")
+									  || key.equals("pombase") || key.equals("rebase") || key.equals("refseq")
+									  || key.equals("refseq_nt") || key.equals("rgd") || key.equals("sgd") 
+									  || key.equals("string") || key.equals("unigene") || key.equals("uniparc")
+									  || key.equals("unipathway") || key.equals("uniprotkb-id") || key.equals("uniref100") 
+									  || key.equals("uniref50") || key.equals("uniref90") || key.equals("vectorbase")
+									  || key.equals("wormbase") || key.equals("xenbase")
+									  ) {
+					            	CriteriaQuery cq = searchProteinbyProtein_crossrefTypeCrossref(key,value);
+					            	temp_criteria.add(cq);
+					            	
+					           }
+							else if(key.equals("uniprot_accession")) {
+						             Set<String> all_uniprot_accession=new HashSet<>();
+							     String[] words = value.split(",");
+							     for(int index=0;index<words.length;index++) {
+			                    	  		 all_uniprot_accession.add(words[index]);
+			                    	 
+			                    		     }
+			                     		    System.out.println("all_uniprot_accession");
+			               			   variable=variable-1;
+							    temp_map_size=temp_map_size-1; 
+					     		    collect_lastset.add(all_uniprot_accession);
+								  
+							}
+							  criteriaList.add(variable-1, temp_criteria);
+						  }
+				  }
+				System.out.println("CriteriaList"+criteriaList);
+				System.out.println("Variable="+variable);	  
+				variable++;
+				  
+			 }
+            		
+            		parseListOfList(criteriaList,conn);
+            
+              
+        	 }
+  */
 public void iterateJsonObject(List<List<String>> key_value_list, String id_json, Connection connection) throws SQLException{
         		List<List<CriteriaQuery>> criteriaList = new ArrayList<>();
            sessionID=id_json;
            conn=connection;
            map_size= key_value_list.size();
-          
+          System.out.println("key_value_list_size"+key_value_list.size());
 	
            //Set Up Criteria For Each Query
 		 int variable=0;
             for(int a = 0 ;a< key_value_list.size();a++) {
+            		//variable=0;
             		temp_map_size++;
-            		
+            		System.out.println("First For LOOP temp_map_size = " + temp_map_size);
 				  List<String> list_element= key_value_list.get(a);
 				  List<CriteriaQuery> temp_criteria = new ArrayList<>();
 				  for (int b=0;b<list_element.size();b++){
@@ -90,6 +301,20 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 						   
 						} 
 						
+/*						if(key.equals("uniprot_accession")) {
+							   Set<String> all_uniprot_accession=new HashSet<>();
+							     String[] words = value.split(",");
+							     for(int index=0;index<words.length;index++) {
+			                    	  		 all_uniprot_accession.add(words[index]);
+			                    	 
+			                    		     }
+			                     		    System.out.println(all_uniprot_accession);
+			               			    temp_map_size--; 
+					     		    collect_lastset.add(all_uniprot_accession);
+							   createTempTable(sessionID,collect_lastset);
+							   System.out.println(collect_lastset); 
+						  }
+*/
 
 						  String regex = "[0-9]+";
 						  if(value.matches(regex)) {
@@ -137,7 +362,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 					            	temp_criteria.add(cq);
 					           }  
 								criteriaList.add(variable, temp_criteria);
-								
+								// variable++;
 													
 						  }
 						   
@@ -216,166 +441,100 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 					            	temp_criteria.add(cq);
 					            	
 					           }
-						       else if(key.equals("uniprot_accession")) {
-                                     String[] words = value.split(",");
-                                     for(int index=0;index<words.length;index++) {
-                                             all_uniprot_accession.add(words[index]);
+						    else if(key.equals("uniprot_accession")) {
+                                                        String[] words = value.split(",");
+                                                         for(int index=0;index<words.length;index++) {
+                                                                 all_uniprot_accession.add(words[index]);
+                     
+                                                        }
+                                                        System.out.println("All Uniprot Accession "+all_uniprot_accession);
+                                                        temp_map_size--; 
+                //                                        variable--;                                
+                                                        collect_lastset.add(all_uniprot_accession);
+        
+                                                         //createTempTable(sessionID,collect_lastset);
+                               
+                                                }
+
+/*						   else if(key.equals("uniprot_id")) {
+			                                String[] words = value.split(",");
+        		                                for(int index=0;index<words.length;index++) {
+                            	                        all_uniprot_accession.add(words[index]);
  
-                                    }
-                                    temp_map_size--; 
-                                    collect_lastset.add(all_uniprot_accession);
+                                                   }
+                                                  System.out.println("All Uniprot Accession "+all_uniprot_accession);
+                                                 temp_map_size--; 
+//                                        variable--;                                
+                              //  collect_lastset.add(all_uniprot_accession);
 
-                                                     
-                               }
+                                 //createTempTable(sessionID,collect_lastset);
+       
+						    }
+						     
+*/
 
+/*  else if(key.equals("uniprot_id")) {
+                             String[] words = value.split(",");
+                             List<String> uniprot_id = new ArrayList<>();
+                             List<PROTEIN> uniprot_id_list = new ArrayList<>() ;
 
-				              else if(key.equals("uniprot_id")) {
-			                             String[] words = value.split(",");
-			                             List<String> uniprot_id = new ArrayList<>();
-			                             List<String> uniprot_id_join = new ArrayList<>();
-			                             
-						  
-			                             Statement stmt = conn.createStatement();	
-			                  			 String uniprot_table_name="UNIPROTID"+sessionID;
-			                            	 String sql = "CREATE TEMPORARY TABLE " + uniprot_table_name +
-			         	                            "(ID VARCHAR(40) not NULL ," +
-			         	                            "PRIMARY KEY my_pkey (ID))";
-			         						  
-				
-				         		        stmt.executeUpdate(sql);
-				         		        String insert_sql="INSERT INTO " +uniprot_table_name +"(ID) VALUES(?)";
-				         		        PreparedStatement ps = conn.prepareStatement(insert_sql);
-			
-			                             for(int index=0;index<words.length;index++) {
-			                            	 uniprot_id.add(words[index]);
-			                             }
-			                              final int batchSize = 1000;
-			              			      int count = 0;
-			              				 
-			                          	for(String protein:uniprot_id){
-			 		 				       ps.setString(1, protein);
-			 		 				       ps.addBatch();
-			 		 				         if(++count % batchSize == 0) {
-					 			    				ps.executeBatch();
-			 						 	     }
-									       ps.executeBatch();
-			 		 				  	}
-						
-								    ResultSet rs = stmt.executeQuery("select ACCESSION from " + uniprot_table_name + " join PROTEIN on "+uniprot_table_name+".ID=PROTEIN.ID" );
-			 		   				
-			 		   				while(rs.next()) {
-			 		   			  		 uniprot_id_join.add(rs.getString("ACCESSION"));
-									
-			 		   				}
-									  all_uniprot_id.addAll(uniprot_id_join);
-									  collect_lastset.add(all_uniprot_id);
-									  temp_map_size--; 
-			                           
-			                  }
-
-						 else if(key.equals("refid")) {
-									String[] words = value.split(",");
-		                             List<String> ref_id = new ArrayList<>();
-		                             List<String> ref_id_join = new ArrayList<>();
-		                             Statement stmt = conn.createStatement();	
-		                             //Create temp table
-		                  			 String ref_table_name="REFID"+sessionID;
-		                            	 String sql = "CREATE TEMPORARY TABLE " + ref_table_name +
-		         	                            "(CROSSREF VARCHAR(40) not NULL ," +
-		         	                            "PRIMARY KEY my_pkey (CROSSREF))";
-		         						  
-			         		        stmt.executeUpdate(sql);
-			         		        //Insert elements that table
-			         		        String insert_sql="INSERT INTO " +ref_table_name +"(CROSSREF) VALUES(?)";
-			         		        PreparedStatement ps = conn.prepareStatement(insert_sql);
-		
-		                             for(int index=0;index<words.length;index++) {
-		                            	   ref_id.add(words[index]);
-		                             }
-		                             final int batchSize = 1000;
-		              			    int count = 0;
-						             				
-		                          	for(String protein:ref_id){
-		 		 				       ps.setString(1, protein);
-		 		 				       ps.addBatch();
-			 		 				   if(++count % batchSize == 0) {
-					 			    				//System.out.println(count);
-					 							ps.executeBatch();
-			 						 	}
-		 		 				       ps.executeBatch();
-		 		 				  	}
-		                          	//Get accession 
-		                          	ResultSet rs = stmt.executeQuery("select ACCESSION from " + ref_table_name + " join PROTEIN_CROSSREF on "+ref_table_name+".CROSSREF=PROTEIN_CROSSREF.CROSSREF WHERE PROTEIN_CROSSREF.TYPE='RefSeq'" );
-			                   		while(rs.next()) {
-			 		   				   	ref_id_join.add(rs.getString("ACCESSION"));
-			 		   			    }
-			 		   			  
-			                   		all_ref_id.addAll(ref_id_join);
-			 		   			    collect_lastset.add(all_ref_id);
-			      				
-		                           
-		                             temp_map_size--; 
-						   }
-
-							 else if(key.equals("ensembl_id")) {
-								String[] words = value.split(",");
-	                             List<String> ensembl_id = new ArrayList<>();
-	                             List<String> ensembl_id_join = new ArrayList<>();
-	                             Statement stmt = conn.createStatement();	
-	                             //Create temp table
-	                  			 String ensembl_table_name="ENSEMBLID"+sessionID;
-	                            	 String sql = "CREATE TEMPORARY TABLE " + ensembl_table_name +
-	         	                            "(CROSSREF VARCHAR(40) not NULL ," +
-	         	                            "PRIMARY KEY my_pkey (CROSSREF))";
-	         						  
-		         		        stmt.executeUpdate(sql);
-		         		        //Insert elements that table
-		         		        String insert_sql="INSERT INTO " +ensembl_table_name +"(CROSSREF) VALUES(?)";
-		         		        PreparedStatement ps = conn.prepareStatement(insert_sql);
-	
-	                             for(int index=0;index<words.length;index++) {
-	                            	  ensembl_id.add(words[index]);
-	                             }
-	                             final int batchSize = 1000;
-	              			    int count = 0;
-					             				
-	                          	for(String protein:ensembl_id){
-	 		 				       ps.setString(1, protein);
-	 		 				       ps.addBatch();
-		 		 				   if(++count % batchSize == 0) {
-				 			    				System.out.println(count);
-				 							ps.executeBatch();
-		 						 	}
-	 		 				       ps.executeBatch();
-	 		 				  	}
-	                          	//Get accession 
-	                          	ResultSet rs = stmt.executeQuery("select ACCESSION from " + ensembl_table_name + " join PROTEIN_CROSSREF on "+ensembl_table_name+".CROSSREF=PROTEIN_CROSSREF.CROSSREF WHERE PROTEIN_CROSSREF.TYPE='Ensembl'" );
-		                   		while(rs.next()) {
-		                   			ensembl_id_join.add(rs.getString("ACCESSION"));
-		 		   			    }
-		 		   			  
-		                   		all_ensembl_id.addAll(ensembl_id_join);
-		 		   			    collect_lastset.add(all_ensembl_id);
-		      				
-	                           
-	                             temp_map_size--; 
-					   }
-						
+                             for(int index=0;index<words.length;index++) {
+	                            	CriteriaBuilder builder = em.getCriteriaBuilder();
+	    	            				CriteriaQuery<PROTEIN> crit = builder.createQuery(PROTEIN.class);
+	    	            				Root<PROTEIN> protein = crit.from(PROTEIN.class);
+	    	            				List<Predicate> restrictions = new ArrayList<>();
+	    	            				restrictions.add(builder.equal(protein.get("ID"), words[index]));
+	    	            				crit.select(protein.get("ACCESSION")).where(restrictions.toArray(new Predicate[]{}));	          
+	    	            				List<PROTEIN> uniprot_id_list_temp = em.createQuery( crit ).getResultList();
+	    	            				uniprot_id_list.addAll(uniprot_id_list_temp);
+	    	            				//System.out.println("List of uniprot_id" + uniprot_id_list);
+    	            			   }
+                             for (Object object : uniprot_id_list) {
+                            	   uniprot_id.add(Objects.toString(object, null));
+                             }
+				   all_uniprot_id.addAll(uniprot_id);
+//System.out.println("all_uniprot_accession" + all_uniprot_id);  	            			                        
+//				System.out.println("List of uniprot_id" + uniprot_id);	            				
+                             temp_map_size--; 
+//                             variable--;
+	      	          collect_lastset.add(all_uniprot_id);
+        
+                           
+                         }
+*/													
 							  criteriaList.add(variable, temp_criteria);
-						
+						//	  variable++;
 							
-					}
+						  }
 
-					
+					/*	if(key.equals("uniprot_accession")) {
+			                                String[] words = value.split(",");
+                        			         for(int index=0;index<words.length;index++) {
+                                    				 all_uniprot_accession.add(words[index]);
+                     
+                                 			}
+                                			System.out.println("All Uniprot Accession "+all_uniprot_accession);
+                                			temp_map_size--; 
+							variable--;                                
+                                			//collect_lastset.add(all_uniprot_accession);
+	
+                              				 //createTempTable(sessionID,collect_lastset);
+                               
+                       				}*/
 
 						
 				  }
 
-				  variable++;
-				 
+				
+ 
+					  
+				  System.out.println("Variable "+variable);    
+				variable++;
+				 //System.out.println("Variable "+variable);  
 			 }
             			
-						
+				System.out.println("CriteriaList"+criteriaList);
+				System.out.println("CriteriaList"+criteriaList.size());				
             			parseListOfList(criteriaList,conn);
   
             
@@ -385,16 +544,22 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
         int current_position=1;        
 	
         public void parseListOfList(List<List<CriteriaQuery>> criteriaList, Connection conn) throws SQLException{
-	        	 if(temp_map_size==0){
-					createTempTable(sessionID,collect_lastset);
-			 }
-			 for(int a = 0 ;a<temp_map_size;a++) {
+        		if(temp_map_size==0){
+				System.out.println("Temp_Map_Size=0");
+			//	collect_lastset.add(all_uniprot_accession);
+				createTempTable(sessionID,collect_lastset);
+				//processSetList("AND" , List<Set<String>> collect_lastset,map_size);
+}
+			System.out.println("ParseListOfList= " + temp_map_size);        		
+        		 for(int a = 0 ;a<temp_map_size;a++) {
 				  List<CriteriaQuery> cl =criteriaList.get(a);
-        		      runCriteriaList(cl,a+1);
+        			System.out.println("cl is " + cl);
+				  runCriteriaList(cl,a+1);
 			 	  current_position++; 
-		     }
-			 current_position=1;
-			 temp_map_size=0;   			    		 
+				System.out.println("PArse list of list for loop is working");
+			 }
+		 current_position=1;
+		 temp_map_size=0;   			    		 
         	}
 
         public void runCriteriaList(List<CriteriaQuery> cl,int query_number){
@@ -416,11 +581,9 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 	 List<Set<String>> collect_lastset =new ArrayList<Set<String>>();
 	 Set<String> all_uniprot_accession=new HashSet<>();
 	 Set<String> all_uniprot_id=new HashSet<>();
-	 Set<String> all_ref_id=new HashSet<>();
-	 Set<String> all_ensembl_id=new HashSet<>();
-	
-	public void processSetList(String OperationList , List<Set<String>> returnList,int query_number) {	   
-			Set<String> finalIntersectionSet = returnList.get(0);
+     public void processSetList(String OperationList , List<Set<String>> returnList,int query_number) {	   
+		System.out.println("ReturlnList is: " + returnList);
+	        Set<String> finalIntersectionSet = returnList.get(0);
 	        Set<String> lastset = new HashSet<>();
   	        OperationList="AND";
   	        if(returnList.size()==1) {
@@ -431,62 +594,98 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
        			 lastset.addAll(finalIntersectionSet);
        		 }
        		 collect_lastset.add(lastset);                         
-			 if(current_position==temp_map_size) {
-		      	 createTempTable(sessionID,collect_lastset);
-	       	 }
-		 			     		
-    }
+			 System.out.println("Collect_lastset process function: " + collect_lastset);
+/*			 if(all_uniprot_accession.size()>0) {
+                                         collect_lastset.add(all_uniprot_accession);
+                            }
+*/			 if(current_position==temp_map_size) {
+				System.out.println("In create temp table!!");
+				/* if(all_uniprot_accession.size()>0) {
+                                         collect_lastset.add(all_uniprot_accession);
+                            }*/
+				System.out.println("Collect_lastset process function: " + collect_lastset);				
+				 createTempTable(sessionID,collect_lastset);
+	       	 	  }
+//    			writeFile(lastset);
+//			System.out.println("LastSet" + " " + lastset);	
+			 			     		
+       	 }
         
-      
+        public void writeFile(Set<String> lastset) {
+        		String fileName= "/home/ilayda/result.txt";
+            try{  
+                   PrintWriter outputStream = new PrintWriter(fileName);
+                   outputStream.println("Result is :" + " " +lastset);
+                   outputStream.close();     
+            }
+            catch(FileNotFoundException fnfe){
+            	System.out.println(fnfe.getMessage());
+            }
+            // outputStream.close();
+        }   
 
 
 		public void createTempTable(String session_ID, List<Set<String>> collect_lastset)  {
-			try {
- 
-			    for(int group=1;group<=collect_lastset.size();group++) {
-			        	 Statement stmt = conn.createStatement();	
-				     String table_name = "protlist"+group+"_"+session_ID;
+			System.out.println("Inside Test Method" + collect_lastset);
 		
-			        	 String sql = "CREATE TEMPORARY TABLE " + table_name +
-		                            "(ACCESSION VARCHAR(40) not NULL ," +
-		                            "PRIMARY KEY my_pkey (ACCESSION))";
-							  
-	
-			        stmt.executeUpdate(sql);
-			        String insert_sql="INSERT INTO " +table_name +"(ACCESSION) VALUES(?)";
-			        PreparedStatement ps = conn.prepareStatement(insert_sql);
-			        List<String> accession = new ArrayList<>();
-					accession.addAll(collect_lastset.get(group-1));
-	
-				    //BATCH
-				   final int batchSize = 10000;
-				   int count = 0;
-					for(String protein:accession){
-					       ps.setString(1, protein);
-					       ps.addBatch();
-						   if(++count % batchSize == 0) {
-			    				
-							   ps.executeBatch();
-						   }	
-			        }
+		    try {
+		
+//		    System.out.println("In the method connection:" + conn);    
+		    for(int group=1;group<=collect_lastset.size();group++) {
+		        	 Statement stmt = conn.createStatement();	
+			     String table_name = "protlist"+group+"_"+session_ID;
+		        	 System.out.println(table_name);
+		        	 String sql = "CREATE TEMPORARY TABLE " + table_name +
+	                            "(ACCESSION VARCHAR(40) not NULL ," +
+	                            "PRIMARY KEY my_pkey (ACCESSION))";
+						  
+//		        System.out.println(sql);
+		        stmt.executeUpdate(sql);
+		        String insert_sql="INSERT INTO " +table_name +"(ACCESSION) VALUES(?)";
+		        PreparedStatement ps = conn.prepareStatement(insert_sql);
+//				System.out.println(insert_sql);
+				List<String> accession = new ArrayList<>();
+				accession.addAll(collect_lastset.get(group-1));
+//			    System.out.println("Accession" + accession);
+			    //BATCH
+			   final int batchSize = 10000;
+			   int count = 0;
+				for(String protein:accession){
+				       ps.setString(1, protein);
+				       ps.addBatch();
+				    if(++count % batchSize == 0) {
+	    				System.out.println(count);
 					ps.executeBatch();
-					
+				//	callStoredProcedure(conn,map_size,sessionID);
+			     		
+				     }	
+		               }
+				ps.executeBatch();
+				
+				//CHECK TABLE AND ELEMENTS
+				ResultSet rs = stmt.executeQuery("select * from " + table_name);
+				 System.out.println("Table name:" + table_name);
+				while(rs.next()) {
+			          System.out.println(rs.getString("ACCESSION"));
 				}
-			   for(int table_index=0;table_index<map_size;table_index++){ 
-			    if(collect_lastset.size()==map_size){
-			
-			     //Call Stored Procedure
-			     	callStoredProcedure(conn,map_size,sessionID);
-				break;
-			     }
-	
-			   }         
-		 } catch (SQLException e) {
+				        
+					        	 
+		     }
+		   for(int table_index=0;table_index<map_size;table_index++){ 
+		    if(collect_lastset.size()==map_size){
+			System.out.println("Collect_lastset is equal to map size");
+		     //Call Stored Procedure
+		     	callStoredProcedure(conn,map_size,sessionID);
+			break;
+		     }
+		System.out.println("For loop" + collect_lastset); 
+		}         
+		    } catch (SQLException e) {
 		        // TODO Auto-generated catch block
 		        e.printStackTrace();
-		  } catch(NullPointerException e){
+		    } catch(NullPointerException e){
 		        System.out.println("Null Pointer exception");
-		  }
+		    }
 		}
 	
 
@@ -497,23 +696,44 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 					      CallableStatement gm_1set =connection.prepareCall("{ call GM_1SET(?) }");
 					      gm_1set.setString(1, sessionID);
 					      gm_1set.execute();  
-			            
+			               ResultSet rs_gm_a = gm_1set.executeQuery("select * from GM_a_"+sessionID);
+					      System.out.println("GM_1SET && GM_a_"+sessionID); 
+			              while(rs_gm_a.next()) {
+			                       System.out.println(rs_gm_a.getString("ONTOLOGY"));
+			              }  
 			              //SET
 			              CallableStatement gb_1set =connection.prepareCall("{ call GB_1SET(?) }");
 			              gb_1set.setString(1, sessionID);
 			              gb_1set.execute();  
-			             
+			              ResultSet rs_gb_a = gb_1set.executeQuery("select * from GB_a_"+sessionID);
+/*					      System.out.println("GB_1SET && GB_a_sessionID"); 
+			              while(rs_gb_a.next()) {
+			                        System.out.println(rs_gb_a.getString("ONTOLOGY"));
+			              }   
+*/		 
 			              //SET
 			              CallableStatement pw_1set =connection.prepareCall("{ call PW_1SET(?) }");
 			              pw_1set.setString(1, sessionID);
 			              pw_1set.execute();  
-			             
+			              System.out.println("Callable 1");  
+					      ResultSet rs_pw_a = pw_1set.executeQuery("select * from PW_a_"+sessionID);
+/*					      System.out.println("PW_1SET && PW_a_sessionID"); 
+			              while(rs_pw_a.next()) {
+			                        System.out.println(rs_pw_a.getString("PATHWAY"));
+			              }  
+*/			 
 			              //SET
 			              CallableStatement dm_1set =connection.prepareCall("{ call DM_1SET(?) }");
 			              dm_1set.setString(1, sessionID);
 			              dm_1set.execute();  
-			             
-					      //SET
+			              System.out.println("Callable 1");  
+					      ResultSet rs_dm_a = dm_1set.executeQuery("select * from DM_a_"+sessionID);
+/*					      System.out.println("DM_1SET && DM_a_sessionID"); 
+			              while(rs_dm_a.next()) {
+			                        System.out.println(rs_dm_a.getString("DOMAIN"));
+			              }
+*/			              
+			              //SET
 			              CallableStatement pr_1set =connection.prepareCall("{ call PROT_1SET(?) }");
 			              pr_1set.setString(1, sessionID);
 			              pr_1set.execute();  
@@ -530,57 +750,332 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 				    CallableStatement gm_2set=connection.prepareCall("{ call GM_2SET(?) }");
 				    gm_2set.setString(1, sessionID);
 				    gm_2set.execute();  
+                		ResultSet rs_gm_a = gm_2set.executeQuery("select * from GM_a_"+sessionID);
+/*                		System.out.println("GM_2SET && GM_a_sessionID "); 
+                		while(rs_gm_a.next()) {              
+                       		        System.out.println(rs_gm_a.getString("ONTOLOGY"));
+                		} 
                 		
-				    //SET
+                		//SET
+       	             ResultSet rs_gm_b = gm_2set.executeQuery("select * from GM_b_"+sessionID);
+                		System.out.println("GM_2SET && GM_b_sessionID ");  
+                		while(rs_gm_b.next()) {
+                        	 System.out.println(rs_gm_b.getString("ONTOLOGY"));
+                		} 
+      		
+                		//SET
+              		ResultSet rs_gm_c = gm_2set.executeQuery("select * from GM_c_"+sessionID);
+                		System.out.println("GM_2SET && GM_c_sessionID "); 
+                		while(rs_gm_c.next()) {                          
+                       		        System.out.println(rs_gm_c.getString("ONTOLOGY"));
+                		} 
+              		//GB2SET
+  */              		
+         	        //SET
                 		CallableStatement gb_2set =connection.prepareCall("{ call GB_2SET(?) }");
   	                gb_2set.setString(1, sessionID);
   	                gb_2set.execute();  
-  	               
-  	                //PW2SET
+  	                System.out.println("Callable 2");  
+  /*			        ResultSet rs_gb_a = gb_2set.executeQuery("select * from GB_a_"+sessionID);
+  			        System.out.println("GB_2SET && GB_a_sessionID"); 
+  	                while(rs_gb_a.next()) {
+  	                        System.out.println(rs_gb_a.getString("ONTOLOGY"));
+  	                }  
+  	                //SET
+  	                ResultSet rs_gb_b = gb_2set.executeQuery("select * from GB_b_"+sessionID);
+			        System.out.println("GB_2SET && GB_b_sessionID"); 
+	                while(rs_gb_b.next()) {
+	                        System.out.println(rs_gb_b.getString("ONTOLOGY"));
+	                }  
+
+	              //SET
+	                ResultSet rs_gb_c = gb_2set.executeQuery("select * from GB_c_"+sessionID);
+			        System.out.println("GB_2SET && GB_c_sessionID"); 
+	                while(rs_gb_c.next()) {
+	                        System.out.println(rs_gb_c.getString("ONTOLOGY"));
+	                }  
+	                
+*/	                //PW2SET
 		            //SET
 	                CallableStatement pw_2set =connection.prepareCall("{ call PW_2SET(?) }");
 	                pw_2set.setString(1, sessionID);
 	                pw_2set.execute();  
-  	               
+  	                System.out.println("Callable 2");  
+  			        ResultSet rs_pw_a = pw_2set.executeQuery("select * from PW_a_"+sessionID);
+  /*			        System.out.println("PW_2SET && PW_a_sessionID"); 
+  	                while(rs_pw_a.next()) {
+  	                        System.out.println(rs_pw_a.getString("PATHWAY"));
+  	                }  
+  	              
+	              //SET
+  	                ResultSet rs_pw_b = pw_2set.executeQuery("select * from PW_b_"+sessionID);
+			        System.out.println("PW_2SET && PW_b_sessionID"); 
+	                while(rs_pw_b.next()) {
+	                        System.out.println(rs_pw_b.getString("PATHWAY"));
+	                } 
+	                
+		              //SET
+	                ResultSet rs_pw_c = pw_2set.executeQuery("select * from PW_c_"+sessionID);
+			        System.out.println("PW_2SET && PW_c_sessionID"); 
+	                while(rs_pw_c.next()) {
+	                        System.out.println(rs_pw_c.getString("PATHWAY"));
+	                }  
+	                
+*/	                
 	                //DM2SET
 		            //SET
 	                CallableStatement dm_2set =connection.prepareCall("{ call DM_2SET(?) }");
 		            dm_2set.setString(1, sessionID);
 		            dm_2set.execute();  
-		          
+		            System.out.println("Callable 1");  
+/*				    ResultSet rs_dm_a = dm_2set.executeQuery("select * from DM_a_"+sessionID);
+				    System.out.println("DM_2SET && DM_a_sessionID"); 
+		            while(rs_dm_a.next()) {
+		                    System.out.println(rs_dm_a.getString("DOMAIN"));
+		            }  
+		             
+		            //SET
+				    ResultSet rs_dm_b = dm_2set.executeQuery("select * from DM_b_"+sessionID);
+				    System.out.println("DM_2SET && DM_b_sessionID"); 
+		            while(rs_dm_b.next()) {
+		                   System.out.println(rs_dm_b.getString("DOMAIN"));
+		            }
+		           
+		              //SET
+		            ResultSet rs_dm_c = dm_2set.executeQuery("select * from DM_c_"+sessionID);
+				    System.out.println("DM_2SET && DM_c_sessionID"); 
+		            while(rs_dm_c.next()) {
+		                   System.out.println(rs_dm_c.getString("DOMAIN"));
+		            }  
 		            //PROT2SET
-		            	//SET
+*/		            	//SET
 		            CallableStatement pr_2set =connection.prepareCall("{ call PROT_2SET(?) }");
 		            pr_2set.setString(1, sessionID);
 		            pr_2set.execute();  
-		            callJoinFunction(conn); 				
+				System.out.println("End of set");
+				 callJoinFunction(conn); 				
 			}
-			else if(map_size==3) {
+			else if(querynumber==3) {
+					System.out.println("Store procedure for 3 set");
 				    //GM3SET
 					//SET
 					CallableStatement gm_3set=connection.prepareCall("{ call GM_3SET(?) }");
 					gm_3set.setString(1, sessionID);
-					gm_3set.execute();
-			
-					//GB3SET
+					gm_3set.execute();  
+             		ResultSet rs_gm_a = gm_3set.executeQuery("select * from GM_a_"+sessionID);
+             		System.out.println("GM_3SET && GM_a_sessionID "); 
+             		while(rs_gm_a.next()) {              
+                    		        System.out.println(rs_gm_a.getString("ONTOLOGY"));
+             		} 
+             	 
+      	              //SET
+             		ResultSet rs_gm_b = gm_3set.executeQuery("select * from GM_b_"+sessionID);
+             		System.out.println("GM_3SET && GM_b_sessionID ");  
+             		while(rs_gm_b.next()) {
+                     		                          
+                    		        System.out.println(rs_gm_b.getString("ONTOLOGY"));
+             		} 
+             	 
+     	              //SET
+             		ResultSet rs_gm_c = gm_3set.executeQuery("select * from GM_c_"+sessionID);
+             		System.out.println("GM_3SET && GM_c_sessionID "); 
+             		while(rs_gm_c.next()) {                          
+                    		        System.out.println(rs_gm_c.getString("ONTOLOGY"));
+             		} 
+             	
+             		//SET
+             		ResultSet rs_gm_d = gm_3set.executeQuery("select * from GM_d_"+sessionID);
+             		System.out.println("GM_3SET && GM_d_sessionID "); 
+             		while(rs_gm_d.next()) {                          
+                    		        System.out.println(rs_gm_d.getString("ONTOLOGY"));
+             		} 
+             		
+   			    
+   	              	//SET
+             		ResultSet rs_gm_e = gm_3set.executeQuery("select * from GM_e_"+sessionID);
+             		System.out.println("GM_3SET && GM_e_sessionID "); 
+             		while(rs_gm_e.next()) {                          
+                    		        System.out.println(rs_gm_e.getString("ONTOLOGY"));
+             		} 
+             	
+      	             //SET 
+             		ResultSet rs_gm_f = gm_3set.executeQuery("select * from GM_f_"+sessionID);
+             		System.out.println("GM_3SET && GM_f_sessionID "); 
+             		while(rs_gm_f.next()) {                          
+                    		        System.out.println(rs_gm_f.getString("ONTOLOGY"));
+             		} 
+             		
+             		//SET
+             		ResultSet rs_gm_g = gm_3set.executeQuery("select * from GM_g_"+sessionID);
+             		System.out.println("GM_3SET && GM_g_sessionID "); 
+             		while(rs_gm_g.next()) {                          
+                    		        System.out.println(rs_gm_g.getString("ONTOLOGY"));
+             		} 
+             	
+             		
+             		//GB3SET
 	    	            //SET
              		CallableStatement gb_3set =connection.prepareCall("{ call GB_3SET(?) }");
 	                gb_3set.setString(1, sessionID);
 	                gb_3set.execute();  
+	                System.out.println("Callable 2");  
+			        ResultSet rs_gb_a = gb_3set.executeQuery("select * from GB_a_"+sessionID);
+			        System.out.println("GB_3SET && GB_a_sessionID"); 
+	                while(rs_gb_a.next()) {
+	                        System.out.println(rs_gb_a.getString("ONTOLOGY"));
+	                }  
+	            
+	                //SET
+	                ResultSet rs_gb_b = gb_3set.executeQuery("select * from GB_b_"+sessionID);
+	                System.out.println("GB_2SET && GB_b_sessionID"); 
+	                while(rs_gb_b.next()) {
+                        System.out.println(rs_gb_b.getString("ONTOLOGY"));
+	                }  
 	             
+		             //SET
+	                ResultSet rs_gb_c = gb_3set.executeQuery("select * from GB_c_"+sessionID);
+	                System.out.println("GB_2SET && GB_c_sessionID"); 
+	                while(rs_gb_c.next()) {
+                        System.out.println(rs_gb_c.getString("ONTOLOGY"));
+	                }
+	               
+		              
+		             //SET
+	                ResultSet rs_gb_d = gb_3set.executeQuery("select * from GB_d_"+sessionID);
+	                System.out.println("GB_2SET && GB_d_sessionID"); 
+	                while(rs_gb_d.next()) {
+                        System.out.println(rs_gb_d.getString("ONTOLOGY"));
+	                }
+	               
+		              //SET
+	                ResultSet rs_gb_e = gb_3set.executeQuery("select * from GB_e_"+sessionID);
+	                System.out.println("GB_2SET && GB_e_sessionID"); 
+	                while(rs_gb_e.next()) {
+                        System.out.println(rs_gb_e.getString("ONTOLOGY"));
+	                }
+	              
+		              //SET
+	                ResultSet rs_gb_f = gb_3set.executeQuery("select * from GB_f_"+sessionID);
+	                System.out.println("GB_2SET && GB_f_sessionID"); 
+	                while(rs_gb_f.next()) {
+                        System.out.println(rs_gb_f.getString("ONTOLOGY"));
+	                }
+	              
+		              //SET
+	                ResultSet rs_gb_g = gb_3set.executeQuery("select * from GB_g_"+sessionID);
+	                System.out.println("GB_3SET && GB_g_sessionID"); 
+	                while(rs_gb_g.next()) {
+                        System.out.println(rs_gb_g.getString("ONTOLOGY"));
+	                }
 	             
 	                //PW3SET
 	                //SET
 	                CallableStatement pw_3set =connection.prepareCall("{ call PW_3SET(?) }");
 	                pw_3set.setString(1, sessionID);
 	                pw_3set.execute();  
-  	               
+  	                System.out.println("Callable 2");  
+  			        ResultSet rs_pw_a = pw_3set.executeQuery("select * from PW_a_"+sessionID);
+  			        System.out.println("PW_3SET && PW_a_sessionID"); 
+  	                while(rs_pw_a.next()) {
+  	                        System.out.println(rs_pw_a.getString("PATHWAY"));
+  	                }  
+  	            
+  	                //SET
+  	                ResultSet rs_pw_b = pw_3set.executeQuery("select * from PW_b_"+sessionID);
+			        System.out.println("PW_3SET && PW_b_sessionID"); 
+	                while(rs_pw_b.next()) {
+	                        System.out.println(rs_pw_b.getString("PATHWAY"));
+	                }  
+	             
+	              	//SET
+	                ResultSet rs_pw_c = pw_3set.executeQuery("select * from PW_c_"+sessionID);
+			        System.out.println("PW_3SET && PW_c_sessionID"); 
+	                while(rs_pw_c.next()) {
+	                        System.out.println(rs_pw_c.getString("PATHWAY"));
+	                } 
+	                
+	                //SET
+	                ResultSet rs_pw_d = pw_3set.executeQuery("select * from PW_d_"+sessionID);
+			        System.out.println("PW_3SET && PW_d_sessionID"); 
+	                while(rs_pw_d.next()) {
+	                        System.out.println(rs_pw_d.getString("PATHWAY"));
+	                } 
+	               
+		             //SET
+	                ResultSet rs_pw_e = pw_3set.executeQuery("select * from PW_e_"+sessionID);
+			        System.out.println("PW_3SET && PW_e_sessionID"); 
+	                while(rs_pw_e.next()) {
+	                        System.out.println(rs_pw_e.getString("PATHWAY"));
+	                } 
+	              
+		             //SET
+	                ResultSet rs_pw_f = pw_3set.executeQuery("select * from PW_f_"+sessionID);
+			        System.out.println("PW_3SET && PW_f_sessionID"); 
+	                while(rs_pw_f.next()) {
+	                        System.out.println(rs_pw_f.getString("PATHWAY"));
+	                } 
+	               
+		             //SET
+	                ResultSet rs_pw_g = pw_3set.executeQuery("select * from PW_g_"+sessionID);
+			        System.out.println("PW_3SET && PW_g_sessionID"); 
+	                while(rs_pw_g.next()) {
+	                        System.out.println(rs_pw_g.getString("PATHWAY"));
+	                } 
+	             
+			
 	                //DM3SET
-		            //SET
+		              //SET
 	                CallableStatement dm_3set =connection.prepareCall("{ call DM_3SET(?) }");
 		            dm_3set.setString(1, sessionID);
 		            dm_3set.execute();  
+		            System.out.println("Callable 1");  
+				    ResultSet rs_dm_a = dm_3set.executeQuery("select * from DM_a_"+sessionID);
+				    System.out.println("DM_3SET && DM_a_sessionID"); 
+		            while(rs_dm_a.next()) {
+		                    System.out.println(rs_dm_a.getString("DOMAIN"));
+		            }  
+		         
+		              //SET
+				    ResultSet rs_dm_b = dm_3set.executeQuery("select * from DM_b_"+sessionID);
+				    System.out.println("DM_3SET && DM_b_sessionID"); 
+		            while(rs_dm_b.next()) {
+		                   System.out.println(rs_dm_b.getString("DOMAIN"));
+		            }
 		          
+		              //SET
+		            ResultSet rs_dm_c = dm_3set.executeQuery("select * from DM_c_"+sessionID);
+				    System.out.println("DM_3SET && DM_c_sessionID"); 
+		            while(rs_dm_c.next()) {
+		                   System.out.println(rs_dm_c.getString("DOMAIN"));
+		            } 
+		            
+		              //SET
+		            ResultSet rs_dm_d = dm_3set.executeQuery("select * from DM_d_"+sessionID);
+				    System.out.println("DM_3SET && DM_d_sessionID"); 
+		            while(rs_dm_d.next()) {
+		                   System.out.println(rs_dm_d.getString("DOMAIN"));
+		            } 
+		          
+		              //SET
+		            ResultSet rs_dm_e = dm_3set.executeQuery("select * from DM_e_"+sessionID);
+				    System.out.println("DM_3SET && DM_e_sessionID"); 
+		            while(rs_dm_e.next()) {
+		                   System.out.println(rs_dm_e.getString("DOMAIN"));
+		            } 
+		          
+		              //SET
+		            ResultSet rs_dm_f = dm_3set.executeQuery("select * from DM_f_"+sessionID);
+				    System.out.println("DM_3SET && DM_f_sessionID"); 
+		            while(rs_dm_f.next()) {
+		                   System.out.println(rs_dm_f.getString("DOMAIN"));
+		            } 
+		        
+		              //SET
+		            ResultSet rs_dm_g = dm_3set.executeQuery("select * from DM_g_"+sessionID);
+				    System.out.println("DM_3SET && DM_g_sessionID"); 
+		            while(rs_dm_g.next()) {
+		                   System.out.println(rs_dm_g.getString("DOMAIN"));
+		            } 
 		            //PROT3SET
 		            //SET
 		            CallableStatement pr_3set =connection.prepareCall("{ call PROT_3SET(?) }");
@@ -589,13 +1084,118 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 
 		            callJoinFunction(conn); 
 		}	
-			else if(map_size==4) {
+			else if(querynumber==4) {
 				
+				System.out.println("Store procedure for 4 set");
 			    //GM4SET
 				//SET
 			    CallableStatement gm_4set=connection.prepareCall("{ call GM_4SET(?) }");
 			    gm_4set.setString(1, sessionID);
 			    gm_4set.execute();  
+         		ResultSet rs_gm_a = gm_4set.executeQuery("select * from GM_a_"+sessionID);
+         		System.out.println("GM_4SET && GM_a_sessionID "); 
+         		while(rs_gm_a.next()) {              
+                		        System.out.println(rs_gm_a.getString("ONTOLOGY"));
+         		} 
+         		
+         		//SET
+         		ResultSet rs_gm_b = gm_4set.executeQuery("select * from GM_b_"+sessionID);
+         		System.out.println("GM_4SET && GM_b_sessionID ");  
+         		while(rs_gm_b.next()) {
+                 		                          
+                		        System.out.println(rs_gm_b.getString("ONTOLOGY"));
+         		} 
+         		
+         		//SET
+         		ResultSet rs_gm_c = gm_4set.executeQuery("select * from GM_c_"+sessionID);
+         		System.out.println("GM_4SET && GM_c_sessionID "); 
+         		while(rs_gm_c.next()) {                          
+                		        System.out.println(rs_gm_c.getString("ONTOLOGY"));
+         		} 
+         		
+         		//SET
+         		ResultSet rs_gm_d = gm_4set.executeQuery("select * from GM_d_"+sessionID);
+         		System.out.println("GM_4SET && GM_d_sessionID "); 
+         		while(rs_gm_d.next()) {                          
+                		        System.out.println(rs_gm_d.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_e = gm_4set.executeQuery("select * from GM_e_"+sessionID);
+         		System.out.println("GM_4SET && GM_e_sessionID "); 
+         		while(rs_gm_e.next()) {                          
+                		        System.out.println(rs_gm_e.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_f = gm_4set.executeQuery("select * from GM_f_"+sessionID);
+         		System.out.println("GM_4SET && GM_f_sessionID "); 
+         		while(rs_gm_f.next()) {                          
+                		        System.out.println(rs_gm_f.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_g = gm_4set.executeQuery("select * from GM_g_"+sessionID);
+         		System.out.println("GM_4SET && GM_g_sessionID "); 
+         		while(rs_gm_g.next()) {                          
+                		        System.out.println(rs_gm_g.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_h = gm_4set.executeQuery("select * from GM_h_"+sessionID);
+         		System.out.println("GM_4SET && GM_h_sessionID "); 
+         		while(rs_gm_h.next()) {                          
+                		        System.out.println(rs_gm_h.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_i = gm_4set.executeQuery("select * from GM_i_"+sessionID);
+         		System.out.println("GM_4SET && GM_i_sessionID "); 
+         		while(rs_gm_i.next()) {                          
+                		        System.out.println(rs_gm_i.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_j = gm_4set.executeQuery("select * from GM_j_"+sessionID);
+         		System.out.println("GM_4SET && GM_j_sessionID "); 
+         		while(rs_gm_j.next()) {                          
+                		        System.out.println(rs_gm_j.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_k = gm_4set.executeQuery("select * from GM_k_"+sessionID);
+         		System.out.println("GM_4SET && GM_k_sessionID "); 
+         		while(rs_gm_k.next()) {                          
+                		        System.out.println(rs_gm_k.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_l = gm_4set.executeQuery("select * from GM_l_"+sessionID);
+         		System.out.println("GM_4SET && GM_l_sessionID "); 
+         		while(rs_gm_l.next()) {                          
+                		        System.out.println(rs_gm_l.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+          		ResultSet rs_gm_m = gm_4set.executeQuery("select * from GM_m_"+sessionID);
+         		System.out.println("GM_4SET && GM_m_sessionID "); 
+         		while(rs_gm_m.next()) {                          
+                		        System.out.println(rs_gm_m.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_n = gm_4set.executeQuery("select * from GM_n_"+sessionID);
+         		System.out.println("GM_4SET && GM_n_sessionID "); 
+         		while(rs_gm_n.next()) {                          
+                		        System.out.println(rs_gm_n.getString("ONTOLOGY"));
+         		} 
+
+         		//SET
+         		ResultSet rs_gm_o = gm_4set.executeQuery("select * from GM_o_"+sessionID);
+         		System.out.println("GM_4SET && GM_o_sessionID "); 
+         		while(rs_gm_o.next()) {                          
+                		        System.out.println(rs_gm_o.getString("ONTOLOGY"));
+         		} 
          		
          		//GB4SET
 
@@ -603,19 +1203,330 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
          		CallableStatement gb_4set =connection.prepareCall("{ call GB_4SET(?) }");
                 gb_4set.setString(1, sessionID);
                 gb_4set.execute();  
-               
+                System.out.println("Callable 2");  
+		        ResultSet rs_gb_a = gb_4set.executeQuery("select * from GB_a_"+sessionID);
+		        System.out.println("GB_4SET && GB_a_sessionID"); 
+                while(rs_gb_a.next()) {
+                        System.out.println(rs_gb_a.getString("ONTOLOGY"));
+                }  
+
+         		//SET
+                ResultSet rs_gb_b = gb_4set.executeQuery("select * from GB_b_"+sessionID);
+                System.out.println("GB_4SET && GB_b_sessionID"); 
+                while(rs_gb_b.next()) {
+                    System.out.println(rs_gb_b.getString("ONTOLOGY"));
+                }  
+
+         		//SET
+                ResultSet rs_gb_c = gb_4set.executeQuery("select * from GB_c_"+sessionID);
+                System.out.println("GB_4SET && GB_c_sessionID"); 
+                while(rs_gb_c.next()) {
+                    System.out.println(rs_gb_c.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_d = gb_4set.executeQuery("select * from GB_d_"+sessionID);
+                System.out.println("GB_4SET && GB_d_sessionID"); 
+                while(rs_gb_d.next()) {
+                    System.out.println(rs_gb_d.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_e = gb_4set.executeQuery("select * from GB_e_"+sessionID);
+                System.out.println("GB_4SET && GB_e_sessionID"); 
+                while(rs_gb_e.next()) {
+                    System.out.println(rs_gb_e.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_f = gb_4set.executeQuery("select * from GB_f_"+sessionID);
+                System.out.println("GB_4SET && GB_f_sessionID"); 
+                while(rs_gb_f.next()) {
+                    System.out.println(rs_gb_f.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_g = gb_4set.executeQuery("select * from GB_g_"+sessionID);
+                System.out.println("GB_4SET && GB_g_sessionID"); 
+                while(rs_gb_g.next()) {
+                    System.out.println(rs_gb_g.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_h = gb_4set.executeQuery("select * from GB_h_"+sessionID);
+                System.out.println("GB_4SET && GB_h_sessionID"); 
+                while(rs_gb_h.next()) {
+                    System.out.println(rs_gb_h.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_i = gb_4set.executeQuery("select * from GB_i_"+sessionID);
+                System.out.println("GB_4SET && GB_i_sessionID"); 
+                while(rs_gb_i.next()) {
+                    System.out.println(rs_gb_i.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_j = gb_4set.executeQuery("select * from GB_j_"+sessionID);
+                System.out.println("GB_4SET && GB_j_sessionID"); 
+                while(rs_gb_j.next()) {
+                    System.out.println(rs_gb_j.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_k = gb_4set.executeQuery("select * from GB_k_"+sessionID);
+                System.out.println("GB_4SET && GB_k_sessionID"); 
+                while(rs_gb_k.next()) {
+                    System.out.println(rs_gb_k.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_l = gb_4set.executeQuery("select * from GB_l_"+sessionID);
+                System.out.println("GB_4SET && GB_l_sessionID"); 
+                while(rs_gb_l.next()) {
+                    System.out.println(rs_gb_l.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_m = gb_4set.executeQuery("select * from GB_m_"+sessionID);
+                System.out.println("GB_4SET && GB_m_sessionID"); 
+                while(rs_gb_m.next()) {
+                    System.out.println(rs_gb_m.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_n = gb_4set.executeQuery("select * from GB_n_"+sessionID);
+                System.out.println("GB_4SET && GB_n_sessionID"); 
+                while(rs_gb_n.next()) {
+                    System.out.println(rs_gb_n.getString("ONTOLOGY"));
+                }
+
+         		//SET
+                ResultSet rs_gb_o = gb_4set.executeQuery("select * from GB_o_"+sessionID);
+                System.out.println("GB_4SET && GB_n_sessionID"); 
+                while(rs_gb_o.next()) {
+                    System.out.println(rs_gb_o.getString("ONTOLOGY"));
+                }
+                
                 //PW4SET
                 //SET
                 CallableStatement pw_4set =connection.prepareCall("{ call PW_4SET(?) }");
                 pw_4set.setString(1, sessionID);
                 pw_4set.execute();  
-              
+                System.out.println("Callable 2");  
+		        ResultSet rs_pw_a = pw_4set.executeQuery("select * from PW_a_"+sessionID);
+		        System.out.println("PW_3SET && PW_a_sessionID"); 
+                while(rs_pw_a.next()) {
+                        System.out.println(rs_pw_a.getString("PATHWAY"));
+                }  
+
+         		//SET
+                ResultSet rs_pw_b = pw_4set.executeQuery("select * from PW_b_"+sessionID);
+		        System.out.println("PW_4SET && PW_b_sessionID"); 
+                while(rs_pw_b.next()) {
+                        System.out.println(rs_pw_b.getString("PATHWAY"));
+                }  
+
+         		//SET
+                ResultSet rs_pw_c = pw_4set.executeQuery("select * from PW_c_"+sessionID);
+		        System.out.println("PW_4SET && PW_c_sessionID"); 
+                while(rs_pw_c.next()) {
+                        System.out.println(rs_pw_c.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_d = pw_4set.executeQuery("select * from PW_d_"+sessionID);
+		        System.out.println("PW_4SET && PW_d_sessionID"); 
+                while(rs_pw_d.next()) {
+                        System.out.println(rs_pw_d.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_e = pw_4set.executeQuery("select * from PW_e_"+sessionID);
+		        System.out.println("PW_4SET && PW_e_sessionID"); 
+                while(rs_pw_e.next()) {
+                        System.out.println(rs_pw_e.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_f = pw_4set.executeQuery("select * from PW_f_"+sessionID);
+		        System.out.println("PW_4SET && PW_f_sessionID"); 
+                while(rs_pw_f.next()) {
+                        System.out.println(rs_pw_f.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_g = pw_4set.executeQuery("select * from PW_g_"+sessionID);
+		        System.out.println("PW_4SET && PW_g_sessionID"); 
+                while(rs_pw_g.next()) {
+                        System.out.println(rs_pw_g.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_h = pw_4set.executeQuery("select * from PW_h_"+sessionID);
+		        System.out.println("PW_4SET && PW_h_sessionID"); 
+                while(rs_pw_h.next()) {
+                        System.out.println(rs_pw_h.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_i = pw_4set.executeQuery("select * from PW_i_"+sessionID);
+		        System.out.println("PW_4SET && PW_i_sessionID"); 
+                while(rs_pw_i.next()) {
+                        System.out.println(rs_pw_i.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_j = pw_4set.executeQuery("select * from PW_j_"+sessionID);
+		        System.out.println("PW_4SET && PW_j_sessionID"); 
+                while(rs_pw_j.next()) {
+                        System.out.println(rs_pw_j.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_k = pw_4set.executeQuery("select * from PW_k_"+sessionID);
+		        System.out.println("PW_4SET && PW_k_sessionID"); 
+                while(rs_pw_k.next()) {
+                        System.out.println(rs_pw_k.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_l = pw_4set.executeQuery("select * from PW_l_"+sessionID);
+		        System.out.println("PW_4SET && PW_l_sessionID"); 
+                while(rs_pw_l.next()) {
+                        System.out.println(rs_pw_l.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_m = pw_4set.executeQuery("select * from PW_m_"+sessionID);
+		        System.out.println("PW_4SET && PW_m_sessionID"); 
+                while(rs_pw_m.next()) {
+                        System.out.println(rs_pw_m.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_n = pw_4set.executeQuery("select * from PW_n_"+sessionID);
+		        System.out.println("PW_4SET && PW_n_sessionID"); 
+                while(rs_pw_n.next()) {
+                        System.out.println(rs_pw_n.getString("PATHWAY"));
+                } 
+
+         		//SET
+                ResultSet rs_pw_o = pw_4set.executeQuery("select * from PW_o_"+sessionID);
+		        System.out.println("PW_4SET && PW_o_sessionID"); 
+                while(rs_pw_o.next()) {
+                        System.out.println(rs_pw_o.getString("PATHWAY"));
+                } 
                 //DM4SET
          		//SET
                 CallableStatement dm_4set =connection.prepareCall("{ call DM_4SET(?) }");
 	            dm_4set.setString(1, sessionID);
 	            dm_4set.execute();  
-	           
+	            System.out.println("Callable 1");  
+			    ResultSet rs_dm_a = dm_4set.executeQuery("select * from DM_a_"+sessionID);
+			    System.out.println("DM_4SET && DM_a_sessionID"); 
+	            while(rs_dm_a.next()) {
+	                    System.out.println(rs_dm_a.getString("DOMAIN"));
+	            }
+
+         		//SET
+			    ResultSet rs_dm_b = dm_4set.executeQuery("select * from DM_b_"+sessionID);
+			    System.out.println("DM_4SET && DM_b_sessionID"); 
+	            while(rs_dm_b.next()) {
+	                   System.out.println(rs_dm_b.getString("DOMAIN"));
+	            }
+
+         		//SET
+	            ResultSet rs_dm_c = dm_4set.executeQuery("select * from DM_c_"+sessionID);
+			    System.out.println("DM_4SET && DM_c_sessionID"); 
+	            while(rs_dm_c.next()) {
+	                   System.out.println(rs_dm_c.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_d = dm_4set.executeQuery("select * from DM_d_"+sessionID);
+			    System.out.println("DM_4SET && DM_d_sessionID"); 
+	            while(rs_dm_d.next()) {
+	                   System.out.println(rs_dm_d.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_e = dm_4set.executeQuery("select * from DM_e_"+sessionID);
+			    System.out.println("DM_4SET && DM_e_sessionID"); 
+	            while(rs_dm_e.next()) {
+	                   System.out.println(rs_dm_e.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_f = dm_4set.executeQuery("select * from DM_f_"+sessionID);
+			    System.out.println("DM_4SET && DM_f_sessionID"); 
+	            while(rs_dm_f.next()) {
+	                   System.out.println(rs_dm_f.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_g = dm_4set.executeQuery("select * from DM_g_"+sessionID);
+			    System.out.println("DM_3SET && DM_g_sessionID"); 
+	            while(rs_dm_g.next()) {
+	                   System.out.println(rs_dm_g.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_h = dm_4set.executeQuery("select * from DM_h_"+sessionID);
+			    System.out.println("DM_4SET && DM_h_sessionID"); 
+	            while(rs_dm_h.next()) {
+	                   System.out.println(rs_dm_h.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_i = dm_4set.executeQuery("select * from DM_i_"+sessionID);
+			    System.out.println("DM_4SET && DM_i_sessionID"); 
+	            while(rs_dm_i.next()) {
+	                   System.out.println(rs_dm_i.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_j = dm_4set.executeQuery("select * from DM_j_"+sessionID);
+			    System.out.println("DM_4SET && DM_j_sessionID"); 
+	            while(rs_dm_j.next()) {
+	                   System.out.println(rs_dm_j.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_k = dm_4set.executeQuery("select * from DM_k_"+sessionID);
+			    System.out.println("DM_4SET && DM_k_sessionID"); 
+	            while(rs_dm_k.next()) {
+	                   System.out.println(rs_dm_k.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_l = dm_4set.executeQuery("select * from DM_l_"+sessionID);
+			    System.out.println("DM_4SET && DM_l_sessionID"); 
+	            while(rs_dm_l.next()) {
+	                   System.out.println(rs_dm_l.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_m = dm_4set.executeQuery("select * from DM_m_"+sessionID);
+			    System.out.println("DM_4SET && DM_m_sessionID"); 
+	            while(rs_dm_m.next()) {
+	                   System.out.println(rs_dm_m.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_n = dm_4set.executeQuery("select * from DM_n_"+sessionID);
+			    System.out.println("DM_4SET && DM_n_sessionID"); 
+	            while(rs_dm_n.next()) {
+	                   System.out.println(rs_dm_n.getString("DOMAIN"));
+	            } 
+
+         		//SET
+	            ResultSet rs_dm_o = dm_4set.executeQuery("select * from DM_o_"+sessionID);
+			    System.out.println("DM_4SET && DM_o_sessionID"); 
+	            while(rs_dm_o.next()) {
+	                   System.out.println(rs_dm_o.getString("DOMAIN"));
+	            } 
+
          		//PROT4SET
 	            //SET
 	            CallableStatement pr_4set =connection.prepareCall("{ call PROT_4SET(?) }");
@@ -638,9 +1549,10 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	    call_PROT_StoredProcedure(conn);
 		collect_lastset.clear();
 		all_uniprot_accession.clear();
-		all_uniprot_id.clear(); 
-		all_ref_id.clear();
-		all_ensembl_id.clear();		
+		
+		//current_position=1;
+		System.out.println("Last collect last set was cleared " + collect_lastset);
+		System.out.println("File Uniprot Accession Deleted " + all_uniprot_accession);
 			
 
 	}
@@ -663,8 +1575,18 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		            	  result.add(data);
 		            	  	
 		        } 
-	             result2.add(result);
-		   
+/*	             CallableStatement pr_1set_join =connection.prepareCall("{ call 1SET_P_a_(?) }");
+	             pr_1set_join.setString(1, sessionID);
+	             pr_1set_join.execute(); 
+	             ResultSet rs_pr_a_join =pr_1set_join.getResultSet();	
+	             while(rs_pr_a_join.next()) {
+	            	 	  System.out.println("PROTEIN JOIN");
+		            	  System.out.println(rs_pr_a_join.getString("ACCESSION"));
+		            	 
+		            	  	
+		        } 
+*/	             result2.add(result);
+		   System.out.println("Result2"+result2);  
 	      }
 			
 			else if(map_size==2) {
@@ -1709,9 +2631,9 @@ public void  callJoinFunction(Connection conn) throws SQLException {
           	  	   result_g.add(data);
               } 
 	              result2.add(result_a);
-	              result2.add(result_b);
-	              result2.add(result_c);
-	              result2.add(result_d);
+              result2.add(result_b);
+              result2.add(result_c);
+              result2.add(result_d);
 	              result2.add(result_e);
 	              result2.add(result_f);
 	              result2.add(result_g);
@@ -1747,7 +2669,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	            	  	   data.put("parents", rs_pw_a_join.getString("PARENTS"));
  	            	  	   
  	            	  	   result_a.add(data);
- 	
+ 	        		System.out.println("PW RESULT JOIN" + result_a);    
 			 }  
 
         		    //JOIN
@@ -2148,9 +3070,9 @@ public void  callJoinFunction(Connection conn) throws SQLException {
           	  	   result_g.add(data);
               } 
 	              result2.add(result_a);
-	              result2.add(result_b);
-	              result2.add(result_c);
-	              result2.add(result_d);
+              result2.add(result_b);
+              result2.add(result_c);
+              result2.add(result_d);
 	              result2.add(result_e);
 	              result2.add(result_f);
 	              result2.add(result_g);
@@ -2503,7 +3425,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	            	  	   data.put("name", rs_prot_a_join.getString("NAME"));
 	            	  	   data.put("taxon_id", rs_prot_a_join.getString("TAXON_ID"));
 	            	  	   data.put("taxon_name", rs_prot_a_join.getString("TAXON_NAME"));
-                       data.put("is_reviewed", rs_prot_a_join.getString("IS_REVIEWED"));  
+                   data.put("is_reviewed", rs_prot_a_join.getString("IS_REVIEWED"));  
 	            	  	   result_a.add(data);
 	            	 }  
 
@@ -2813,7 +3735,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	          	  	   data.put("name", rs_prot_m_join.getString("NAME"));
  	          	  	   data.put("taxon_id", rs_prot_m_join.getString("TAXON_ID"));
  	          	  	   data.put("taxon_name", rs_prot_m_join.getString("TAXON_NAME"));
-                       data.put("is_reviewed", rs_prot_m_join.getString("IS_REVIEWED"));
+                    data.put("is_reviewed", rs_prot_m_join.getString("IS_REVIEWED"));
  	          	  	   result_m.add(data);
  	              } 
     	        
@@ -2828,7 +3750,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	          	  	   data.put("name", rs_prot_n_join.getString("NAME"));
  	          	  	   data.put("taxon_id", rs_prot_n_join.getString("TAXON_ID"));
  	          	  	   data.put("taxon_name", rs_prot_n_join.getString("TAXON_NAME"));
- 	          	  	   data.put("is_reviewed", rs_prot_n_join.getString("IS_REVIEWED"));
+                    data.put("is_reviewed", rs_prot_n_join.getString("IS_REVIEWED"));
  	          	  	   result_n.add(data);
  	              } 
                  //JOIN
@@ -2842,7 +3764,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	          	  	   data.put("name", rs_prot_o_join.getString("NAME"));
  	          	  	   data.put("taxon_id", rs_prot_o_join.getString("TAXON_ID"));
  	          	  	   data.put("taxon_name", rs_prot_o_join.getString("TAXON_NAME"));
- 	          	  	   data.put("is_reviewed", rs_prot_o_join.getString("IS_REVIEWED"));
+                    data.put("is_reviewed", rs_prot_o_join.getString("IS_REVIEWED"));
  	          	  	   result_o.add(data);
  	              } 
     	              result2.add(result_a);
@@ -3314,13 +4236,16 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 
 			//41
 			public CriteriaQuery searchProteinbyProtein_crossrefTypeCrossref (String TYPE , String CROSSREF) {
+				   System.out.println("IN THE FUNCTION!!!");
 				CriteriaBuilder builder = em.getCriteriaBuilder();
 				CriteriaQuery<PROTEIN> crit = builder.createQuery(PROTEIN.class);
 				Root<PROTEIN> protein = crit.from(PROTEIN.class);
 				List<Predicate> restrictions = new ArrayList<>();
 				restrictions.add(builder.like(protein.join("protein_crossref").get("TYPE"), "%"+TYPE+"%"));
 				restrictions.add(builder.equal(protein.join("protein_crossref").get("CROSSREF"), CROSSREF));
+				   System.out.println("RESTRICTIONS!");		
 				crit.select(protein.get("ACCESSION")).where(restrictions.toArray(new Predicate[]{}));	          
+				   System.out.println("CRIT:" + " " + crit);
 				return crit;    
 			}
 			
@@ -3328,18 +4253,21 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			
 			//42	
 			public CriteriaQuery searchProteinbyPrimary_SecondarySecondaryAccession (String SECONDARY_ACCESSION) {
+				System.out.println("IN THE FUNCTION!!!");
 				CriteriaBuilder builder = em.getCriteriaBuilder();
 				CriteriaQuery<PROTEIN> crit = builder.createQuery(PROTEIN.class);
 				Root<PROTEIN> protein = crit.from(PROTEIN.class);
 				List<Predicate> restrictions = new ArrayList<>();
+				 System.out.println("Restrictions" );
 				restrictions.add(builder.like(protein.join("primary2secondary").get("SECONDARY_ACCESSION"),"%"+SECONDARY_ACCESSION+"%"));
+				 System.out.println("Restrictions" + " " + restrictions);
 				crit.select(protein.get("ACCESSION")).where(restrictions.toArray(new Predicate[]{}));	          
+				System.out.println("Crit" + " " + crit);
 				return crit;    
 			}
 			
 
 }
-
 
 
 

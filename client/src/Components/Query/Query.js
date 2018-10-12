@@ -5,7 +5,38 @@ import axios from 'axios';
 import Loading from  '../ResultPage/Loading';
 import { Redirect } from 'react-router';
 import './query-builder.css';
+import Select from 'react-select';
 
+
+var nameOfFiles2=[] ;
+class DocumentInput extends React.Component {
+
+  state = {
+     selectedOption: null,
+   }
+   handleChange = (selectedOption) => {
+    this.setState({ selectedOption });
+    nameOfFiles2 .push(selectedOption);
+
+
+  }
+  render() {
+    const {selectedOption}=this.state;
+
+  return<div className="selectFilePart">
+           <Select
+              value={this.selectedOption}
+              onChange={this.handleChange}
+              options={options}
+            />
+            <input type="file" className='input-file1' name={ `document-${ this.props.index }-document` }
+            accept='.tsv' onChange={ e => handleFileChosen(e.target.files)} />
+
+
+        </div>
+
+  }
+}
 
 const fields = [
             {label: 'Disease Accession', name: 'disease_accession'},
@@ -124,8 +155,25 @@ const labels = {
   }
 };
 
+const options = [
+  { value: 'uniprot_accession', label: 'Uniprot Accession' },
+  { value: 'refid', label: 'RefSeq ID' },
+  { value: 'uniprot_id', label: 'Uniprot ID' },
+  { value: 'ensembl_id', label: 'Ensembl ID' }
+];
+const optionsFile = [
+  'Uniprot Accession', 'RefID', 'Crossref','Pathway',
+]
 
 
+function disableAddFileButton() {
+  document.getElementsByClassName("addFileButton")[0].disabled = true;
+
+}
+function enableAddFileButton() {
+  document.getElementsByClassName("addFileButton")[0].disabled = false;
+
+}
 
 function disableBtn() {
     document.getElementsByClassName("ruleGroup-addGroup")[0].disabled = true;
@@ -134,20 +182,78 @@ function disableBtn() {
 
 function enableBtn() {
     document.getElementsByClassName("ruleGroup-addGroup")[0].disabled = false;
+
 }
+function disableUploadFile(){
+  document.getElementsByClassName("input-file1")[0].disabled = true;
+
+}
+function uploadFile(){
+
+  return
+  <input type="file" className='input-file1' name="file" accept='.tsv' onChange={ e => handleFileChosen(e.target.files)} multiple/>
+
+}
+
+
+let fileReader;
+let uploadFileSize = 0;
+var lastContentArray=[];
+
+const handleFileRead = (e) =>{
+  var a=this.optionsState;
+
+
+    let content = e.currentTarget.result;
+    let collectContent =[];
+    collectContent.push(content);
+    lastContentArray.push(collectContent);
+
+  }
+
+const handleFileChosen = (file) =>{
+
+
+    uploadFileSize=uploadFileSize+file.length;
+
+
+    for(var i=0;i<file.length;i++){
+
+      fileReader=new FileReader();
+      fileReader.onload=handleFileRead;
+      fileReader.readAsText(file[i]);
+
+    }
+
+
+
+
+
+  }
+function controlQueryAndFileSize(){
+  if(query1.rules.length+filesize>=4){
+    disableBtn();
+    disableAddFileButton();
+
+  }
+  else{
+    enableBtn();
+    enableAddFileButton();
+
+
+  }
+}
+
 var query1;
 var queryresult="";
-
+var filesize=0;
 
 function logQuery(query) {
+
     query1=query;
     var querybutton=query1.rules.length;
-    if(query1.rules.length>=4){
-      disableBtn();
-    }
-    else{
-      enableBtn()
-    }
+    controlQueryAndFileSize();
+
     queryresult=querybutton;
 
 
@@ -156,24 +262,78 @@ function logQuery(query) {
 
 
 class Query extends Component {
+
   constructor(props){
       super(props);
-      this.state = {loading: false ,control:"",query:"",preview:[]};
+      this.state = {loading: false ,control:"",query:"",preview:[],fileData:[],optionsState:"",optionsStateFile:"",fileDataName:[],selectedOption: null,documents: [], cardCount:1};
       this.sendJSON = this.sendJSON.bind(this);
+      this.changeSelectOption = this.changeSelectOption.bind(this);
+      this.changeSelectOptionFile = this.changeSelectOptionFile.bind(this);
+      this.add = this.add.bind(this);
+      this.delete = this.delete.bind(this);
 
     }
+
+
+add() {
+  const documents = this.state.documents.concat(DocumentInput);
+   this.setState({ documents });
+    filesize=documents.length;
+      controlQueryAndFileSize();
+    if(documents.length>=4){
+        disableAddFileButton();
+
+    }
+
+
+}
+delete(e){
+  var array = [...this.state.documents];
+  var index = array.indexOf(e.target.value)
+  array.splice(index, 1);
+  this.setState({ documents:array });
+  filesize=this.state.documents.length-1;
+  controlQueryAndFileSize();
+  if(this.state.documents.length<=4){
+    enableAddFileButton();
+
+
+  }
+
+
+}
+changeSelectOption(value) {
+
+  this.setState({optionsState: value});
+
+
+
+}
+
+changeSelectOptionFile(fileValue){
+
+  this.setState({optionsStateFile: fileValue});
+
+}
+
 
 
 
 sendJSON(){ //getting the user data to display on the dashboard
 this.setState({loading: true})
     axios.post('http://localhost:9000/protein/query', {
+          fileName:nameOfFiles2,
+          file: lastContentArray,
           body:  JSON.parse(JSON.stringify(query1))
           })
           .then((results) => {
 
             this.setState({loading: false, control:results.status , query:queryresult, preview:results.data})
-            console.log(results);
+
+            uploadFileSize=0;
+            lastContentArray=[];
+            nameOfFiles2=[];
+            filesize=0;
 
 
         }).catch(err => {
@@ -181,32 +341,41 @@ this.setState({loading: true})
       });
 
 
-
   }
+
+
+
+  handleChange = (selectedOption) => {
+     this.setState({ selectedOption });
+
+
+   }
 
 
   render() {
 
 
-    const {control,loading, query,preview} = this.state;
-    
+    const {control,loading, query,preview,optionsState,optionsStateFile,selectedOption} = this.state;
 
-    if(control!==200 && loading===true ){
+   if(control!==200 && loading===true ){
     return <Loading/>
     }
-    else if(control===200 && loading===false && query===1){
+    else if(control===200 && loading===false && query+uploadFileSize===1){
       return (<Redirect to={{ pathname: "/result1", state: { preview: this.state.preview } }} />)
 
     }
-    else if(control===200 && loading===false && query===2){
+    else if(control===200 && loading===false && query+uploadFileSize===2){
       return  (<Redirect to={{ pathname: "/result2", state: { preview: this.state.preview } }} />)
     }
-    else if(control===200 && loading===false && query===3){
+    else if(control===200 && loading===false && query+uploadFileSize===3){
       return   (<Redirect to={{ pathname: "/result3", state: { preview: this.state.preview } }} />)
     }
-    else if(control===200 && loading===false && query===4){
+    else if(control===200 && loading===false && query+uploadFileSize===4){
       return  (<Redirect to={{ pathname: "/result4", state: { preview: this.state.preview } }} />)
     }
+    const documents = this.state.documents.map((Element, index) => {
+    return <Element key={ index } index={ index } />
+  });
    return (
       <div className="query2">
 
@@ -216,10 +385,18 @@ this.setState({loading: true})
       </div>
 
       <div className="query">
-        <QueryBuilder fields={fields} onQueryChange={logQuery} operators={operators} combinators={combinators}
-      translations = {labels}/>
 
-   <button id="submitButton"onClick={this.sendJSON} >SUBMIT </button>
+
+      <QueryBuilder fields={fields} onQueryChange={logQuery} operators={operators} combinators={combinators}
+      translations = {labels}/>
+      <div>  <h3 className="or_tag">OR</h3> </div>
+      <div className="inputs">
+
+        <button className="addFileButton" onClick={ this.add }>UPLOAD FILE</button>
+        <button className="deleteFileButton" onClick={ this.delete }>DELETE</button>
+        { documents }
+     </div>
+        <button id="submitButton"onClick={this.sendJSON} >SUBMIT </button>
 
 
 

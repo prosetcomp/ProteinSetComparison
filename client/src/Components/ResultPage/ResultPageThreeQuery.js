@@ -905,6 +905,20 @@ formatNameAccession(cell, row) {
       words[1]=words[1].replace(new RegExp(',', 'g'), " AND ");
       words[2]=words[2].replace(new RegExp(',', 'g'), " AND ");
 
+      for(var i=0 ;i<words.length;i++){
+        if(words[i]==="uniprot_accession"){
+         words[i]=words[i].replace("uniprot_accession","Uniprot Accession");
+        }
+        else if(words[i]==="uniprot_id"){
+            words[i]=words[i].replace("uniprot_id","Uniprot ID");
+        }
+        else if(words[i]==="refid"){
+            words[i]=words[i].replace("refid","RefSeq ID");
+        }
+        else if(words[i]==="ensembl_id"){
+            words[i]=words[i].replace("ensembl_id","Ensembl ID");
+        }
+      }
 
 
 

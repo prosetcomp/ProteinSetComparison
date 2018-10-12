@@ -42,6 +42,7 @@ public class PROTEIN_CONTROLLER {
 		Date date_time=new Date();
 		String concat_date = date.format(date_time);
 		String json = httpEntity.getBody();
+//		System.out.println("JSON=>" + json);
 		MessageDigest messageDigest;
 		String id_json=json+concat_date;
 		try {
@@ -53,9 +54,9 @@ public class PROTEIN_CONTROLLER {
 				stringBuffer.append(String.format("%02x", bytes & 0xff));
 			}
 
-			System.out.println("data:" + id_json);
+			//System.out.println("data:" + id_json);
 		        id_json=stringBuffer.toString();
-			System.out.println(id_json);
+		//	System.out.println(id_json);
 		} catch (NoSuchAlgorithmException exception) {
 			// TODO Auto-generated catch block
 			exception.printStackTrace();
@@ -67,8 +68,38 @@ public class PROTEIN_CONTROLLER {
 		JsonNode jsonNode = objectMapper.readTree(json);
 		JsonNode body=jsonNode.get("body");
 		JsonNode resultNode=body.get("rules");
+	        JsonNode fileUpload=jsonNode.get("file");
+	        JsonNode fileUploadName=jsonNode.get("fileName");
+		   
+        List<List<String>> file_list = new ArrayList<List<String>>();
+	  List<List<String>> key_value_preview = new ArrayList<List<String>>();
+          List<List<String>> file_list_collect = new ArrayList<List<String>>();
+                      
+        for(int i=0;i<fileUpload.size();i++) {
+        		String fileUploadNameArraySeperate=fileUploadName.get(i).get("value").asText();
+        		JsonNode fileUploadArraySeperate=fileUpload.get(i);
+			List<String> key_value_file = new ArrayList<>();
+			  List<String> file_name = new ArrayList<>();
+        		for(int j=0;j<fileUploadArraySeperate.size();j++) {
+              			 String fileUploadArrayElement=fileUploadArraySeperate.get(j).asText();
+				fileUploadArrayElement=fileUploadArrayElement.replaceAll("\r\n" , ",");
+				key_value_file.add(fileUploadNameArraySeperate+"="+fileUploadArrayElement);
+       				file_name.add(fileUploadNameArraySeperate);
+                
+	                }
+
+file_list_collect.add(file_name);
+		
+        		file_list.add(key_value_file);
+
+    }	
+
+		    for(int a=0;a<file_list_collect.size();a++){
+             key_value_preview.add(file_list_collect.get(a));
+}
 
 		List<List<String>> key_value_list = new ArrayList<List<String>>();
+			
 		 for(int i=0; i<resultNode.size();i++) {
 			  JsonNode resultNode2=resultNode.get(i).get("rules");
 			  List<String> key_value = new ArrayList<>();
@@ -78,16 +109,17 @@ public class PROTEIN_CONTROLLER {
 				  key_value.add(name+"="+value);
 			  }
 			  key_value_list.add(key_value);
+			  key_value_preview.add(key_value);
 		  }
 		
-		protein_repo.iterateJsonObject(key_value_list,id_json,connection);		
+		for(int i=0;i<file_list.size();i++) {
+			 key_value_list.add(file_list.get(i));
+			 
+		 }
 
+		protein_repo.iterateJsonObject(key_value_list,id_json,connection);		
          
-<<<<<<< HEAD
-            return ""+key_value_list;
-=======
-            return ""+key_value_list;;
->>>>>>> 983cd9c9b74d7ecac24fee41f22f45d456a121f0
+            return ""+key_value_preview;
 }
 
 	

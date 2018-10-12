@@ -86,7 +86,7 @@ Promise.all([
    // BTW you don't need to use axios.spread with ES2015 destructuring
    .then(([resultResponse, result2Response,result3Response, result4Response,result5Response]) => {
            this.setState({GM_a: resultResponse.data[0], GB_a : result2Response.data[0],PW_a: result3Response.data[0], DM_a : result4Response.data[0],PROT_a:result5Response.data[0]});
-           //console.log(resultResponse.data[0]);
+          // console.log(resultResponse.data);
            //console.log(result2Response.data[0]);
            //console.log(result3Response.data[0]);
            //console.log(result4Response.data[0]);
@@ -339,6 +339,7 @@ Promise.all([
 
     }
 const {GM_a,GB_a,PW_a,DM_a,PROT_a, selectedValue,key,checked,preview} =this.state;
+//console.log(GM_a[0]);
 var tsvData="";
 
 
@@ -544,7 +545,7 @@ var tsvData="";
       }
       else if(key===5){
         tsvData= JSON.parse(JSON.stringify(DM_a));
-        console.log(DM_a);
+        //console.log(DM_a);
         for(var i in tsvData){
             tsvData[i].ipr= tsvData[i].ipr.replace(/(<([^>]+)>)/ig, '')
             tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
@@ -554,7 +555,7 @@ var tsvData="";
           }
 
       }
-    
+
 
           //PREVIEW QUERY
         var a = preview.preview
@@ -562,6 +563,18 @@ var tsvData="";
         a.replace(/\[(.+?)\]/g, function($0, $1) { words.push($1) })
         words[0]=words[0].replace("[","");
         words[0]=words[0].replace(new RegExp(',', 'g'), " AND ");
+        if(words[0]==="refid"){
+          words[0]=words[0].replace("refid","RefSeq ID");
+        }
+        else if(words[0]==="uniprot_accession"){
+          words[0]=words[0].replace("uniprot_accession","Uniprot Accession");
+        }
+        else if(words[0]==="uniprot_id"){
+          words[0]=words[0].replace("uniprot_id","Uniprot ID");
+        }
+        else if(words[0]==="ensembl_id"){
+          words[0]=words[0].replace("ensembl_id","Ensembl ID");
+        }
     return (
 
       <div className="ResultPage">
@@ -633,7 +646,7 @@ var tsvData="";
               <Tabs defaultActiveKey={1} id="uncontrolled-tab-example" onSelect={this.handleSelect}>
 
                 <Tab eventKey={1} title="Protein">
-                    <BootstrapTable   data={ PROT_a } options={this.options} pagination >
+                    <BootstrapTable   data={ PROT_a } options={this.options}  pagination  >
                         <TableHeaderColumn  dataField='accession' dataFormat={ this.formatNameAccession } isKey dataSort>ACCESSION</TableHeaderColumn>
                         <TableHeaderColumn width={'40%'} dataField='name' dataFormat={ this.formatNameName } dataSort>NAME</TableHeaderColumn>
                         <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center'>TAXON ID</TableHeaderColumn>

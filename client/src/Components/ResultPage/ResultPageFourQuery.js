@@ -397,7 +397,7 @@ formatNameAccession(cell, row) {
 
       let checkBoxComponent =
                <div className="regions_upset">
-                <CheckboxGroup name="regions" id="regions" onChange={this.handleChange} checkboxDepth={5} value={selectedValue} >
+                <CheckboxGroup name="regions4" id="regions4" onChange={this.handleChange} checkboxDepth={5} value={selectedValue} >
                   <label id="h_upset4"><Checkbox value="h" className="h_upset4"/>Q1</label><br/>
                   <label id="d_upset4"><Checkbox value="d" className="d_upset4"/>Q2</label><br/>
                   <label id="b_upset4"><Checkbox value="b" className="b_upset4"/>Q3</label><br/>
@@ -1389,6 +1389,20 @@ formatNameAccession(cell, row) {
     words[1]=words[1].replace(new RegExp(',', 'g'), " AND ");
     words[2]=words[2].replace(new RegExp(',', 'g'), " AND ");
     words[3]=words[3].replace(new RegExp(',', 'g'), " AND ");
+    for(var i=0 ;i<words.length;i++){
+      if(words[i]==="uniprot_accession"){
+       words[i]=words[i].replace("uniprot_accession","Uniprot Accession");
+      }
+      else if(words[i]==="uniprot_id"){
+          words[i]=words[i].replace("uniprot_id","Uniprot ID");
+      }
+      else if(words[i]==="refid"){
+          words[i]=words[i].replace("refid","RefSeq ID");
+      }
+      else if(words[i]==="ensembl_id"){
+          words[i]=words[i].replace("ensembl_id","Ensembl ID");
+      }
+    }
 
 
 
