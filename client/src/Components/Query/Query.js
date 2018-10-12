@@ -392,7 +392,7 @@ this.setState({loading: true})
       <div>  <h3 className="or_tag">OR</h3> </div>
       <div className="inputs">
 
-        <button className="addFileButton" onClick={ this.add }>UPLOAD FILE</button>
+        <button className="addFileButton" onClick={ this.add }>UPLOAD ID LIST</button>
         <button className="deleteFileButton" onClick={ this.delete }>DELETE</button>
         { documents }
      </div>
