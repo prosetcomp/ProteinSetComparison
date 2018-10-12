@@ -1425,7 +1425,7 @@ formatNameAccession(cell, row) {
 
               <div className="button_top">
                 <Link to="/"><button className="add_query">New Query </button></Link>
-                <CSVLink data={tsvData} filename={"prosetcomp.tsv"} separator={"\t"} ><ExportCSVButton/></CSVLink>
+                <CSVLink data={tsvData} filename={"prosetcomp.tsv"} separator={"\t"} ><button className="exportTSV">Export TSV</button></CSVLink>
 
               </div>
 

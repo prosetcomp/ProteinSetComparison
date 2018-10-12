@@ -53,7 +53,7 @@ height: 100%;
 .btn-default{
   margin-right: 20em;
 }
-.add_query{
+.add_query, .exportTSV{
   display: inline-block;
   padding: 6px 12px;
   margin-bottom: 0;
@@ -79,6 +79,7 @@ height: 100%;
   width: 125px;
   margin-right: 5px;
 }
+
 
 .button_top{
   position: absolute;
