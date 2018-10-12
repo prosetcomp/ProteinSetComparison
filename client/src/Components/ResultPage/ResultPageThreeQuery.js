@@ -988,7 +988,7 @@ formatNameAccession(cell, row) {
       <div className="left">
           <div className="button_top">
             <Link to="/"><button className="add_query">New Query </button></Link>
-            <CSVLink data={tsvData} filename={"comp_prot_tool.tsv"} separator={"\t"} ><ExportCSVButton/></CSVLink>
+            <CSVLink data={tsvData} filename={"prosetcomp.tsv"} separator={"\t"} ><ExportCSVButton/></CSVLink>
 
           </div>
       <Tabs defaultActiveKey={1} id="uncontrolled-tab-example" onSelect={this.handleSelect} >
