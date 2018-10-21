@@ -1,7 +1,7 @@
 
 /*Add Query Button*/
 button:focus {outline:0;}
-#root > div > div > div > div.query > div > div > button.ruleGroup-addGroup{
+.ruleGroup-addGroup{
 
   margin-left: -50px;
   display: inline-block;
@@ -18,10 +18,11 @@ button:focus {outline:0;}
   pointer-events: all;
   margin-bottom: 0.3em;
 }
-#root > div > div > div > div.query > div > div > button.ruleGroup-addRule{
+ button.ruleGroup-addRule{
   display: none;
 }
-#root > div > div > div > div.query > div > div > select.ruleGroup-combinators {
+/*Combinator display:none*/
+ select.ruleGroup-combinators {
   display: none;
 }
 
@@ -29,7 +30,7 @@ button:focus {outline:0;}
     display: none;
 }
 /*Delete Button*/
-#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > button.ruleGroup-remove,#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div > button{
+ button.ruleGroup-remove,#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div > button{
     margin-right:  4em;
     background-color: #cc0000;
     border:1px solid #990000;
@@ -51,31 +52,68 @@ button:focus {outline:0;}
     color: white;
     width: 9em;
     height: 3em;
-   text-align: center;
-   text-decoration: none;
-   display: inline-block;
-   font-size: 12px;
-   border-radius: 5px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    border-radius: 5px;
+    margin-left: -5em;
+    margin-bottom: 0.3em;
+    margin-top: 0.3em;
+    margin-right: -0.8em;
 }
-/*Combinator*/
-#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > select{
-  appearance: none;
+
+
+div:nth-child(5) > select.rule-operators{
+  display: none;
+}
+div.queryBuilder > div > div:nth-child(4) > div:nth-child(5){
+  margin-left: 4.5em;
+}
+div.queryBuilder > div > div:nth-child(5) > div:nth-child(5){
+  margin-left: 4.5em;
+}
+div.queryBuilder > div > div:nth-child(6) > div:nth-child(5){
+  margin-left: 4.5em;
+}
+div.queryBuilder > div > div:nth-child(7) > div:nth-child(5){
+  margin-left: 4.5em;
+}
+.rule{
+   display: flex;
+   flex-direction: row;
+   margin-right:  6.6em;
+   justify-content: center;
+
+}
+.rule>select.rule-operators{
+  order: 1;
+  margin-right: 0.3em;
   background-color: #e68a00;
   color: white;
   font-size: 14px;
   border: none;
-  margin-right: 15px;
-  border:none;
-  width: 2.8em;
-  height: 2.5em;
+  height: 30px;
   padding: 5px;
 
-
+}
+.rule>select.rule-fields{
+  order: 2;
+  height: 30px;
+  margin-right: 0.3em;
+}
+.rule>input{
+  order: 3;
+  height: 30px;
+  margin-right: -0.4em;
 
 }
-#root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div > select.rule-operators{
-  display: none;
+.rule>button.rule-remove{
+  order: 4;
+  height: 30px;
+
 }
+
 #root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div:not(:nth-child(4)){
   border: none;
 }
@@ -87,12 +125,13 @@ button:focus {outline:0;}
   background-color:#b3d1ff;
   margin-bottom: 1em;
   border-radius: 5px;
+
  }
 
 .ruleGroup {
   padding: 0.5rem;
-
   background:  #99c2ff;
+
 }
 #submitButton{
   margin-top: 2em;
@@ -112,7 +151,7 @@ button:focus {outline:0;}
 }
 #root > div > div > div > div.query > div > div > div:not(:nth-child(3)) > div > button{
   width: 6em;
-  height: 2em;
+  height: 30px;
   padding: 3px 8px;
 
 }

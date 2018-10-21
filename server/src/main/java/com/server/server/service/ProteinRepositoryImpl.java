@@ -36,12 +36,13 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
        int temp_map_size=0;
      
 
-public void iterateJsonObject(List<List<String>> key_value_list, String id_json, Connection connection) throws SQLException{
+public void iterateJsonObject(List<List<String>> key_value_list, String id_json, Connection connection,List<List<String>> key_value_combinator_list) throws SQLException{
         		List<List<CriteriaQuery>> criteriaList = new ArrayList<>();
            sessionID=id_json;
            conn=connection;
            map_size= key_value_list.size();
-          
+	combinatorList.addAll(key_value_combinator_list);
+         
 	
            //Set Up Criteria For Each Query
 		 int variable=0;
@@ -120,8 +121,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 					            	temp_criteria.add(cq);
 					           }
 							  else if (key.equals("pathway_id")) {
-					            	System.out.println("PATHWAY_ID");
-							CriteriaQuery cq =searchProteinbyPathwayId(foo);
+							          CriteriaQuery cq =searchProteinbyPathwayId(foo);
 					            	temp_criteria.add(cq);
 					           }
 							  else if (key.equals("protein_isreviewed")) {
@@ -299,7 +299,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 		 		 				       ps.setString(1, protein);
 		 		 				       ps.addBatch();
 			 		 				   if(++count % batchSize == 0) {
-					 			    				//System.out.println(count);
+					 			    			
 					 							ps.executeBatch();
 			 						 	}
 		 		 				       ps.executeBatch();
@@ -343,7 +343,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 	 		 				       ps.setString(1, protein);
 	 		 				       ps.addBatch();
 		 		 				   if(++count % batchSize == 0) {
-				 			    				System.out.println(count);
+				 			    			
 				 							ps.executeBatch();
 		 						 	}
 	 		 				       ps.executeBatch();
@@ -390,24 +390,31 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 			 }
 			 for(int a = 0 ;a<temp_map_size;a++) {
 				  List<CriteriaQuery> cl =criteriaList.get(a);
-        		      runCriteriaList(cl,a+1);
+        		     	  List<String> combinator_query = combinatorList.get(a);
+        		          runCriteriaList(cl,combinator_query,a+1);
+			 	  
+				// runCriteriaList(cl,a+1);
 			 	  current_position++; 
 		     }
 			 current_position=1;
 			 temp_map_size=0;   			    		 
         	}
 
-        public void runCriteriaList(List<CriteriaQuery> cl,int query_number){
+        public void runCriteriaList(List<CriteriaQuery> cl,List<String> combinator_query,int query_number){
 	        	int i = cl.size()-1;
 	        List<Set<String>> returnList= new ArrayList<Set<String>>();    
+		 List<String> query_combinator = new ArrayList<>();
+	        query_combinator.addAll(combinator_query);
 	        while(i>-1) {
 	         	CriteriaQuery cquery=cl.get(i);
 		        List<String> result = em.createQuery(cquery).getResultList();
+
 		  		Set<String> resultSet = new HashSet<>(result);
 				returnList.add(resultSet);
 		                i--;
 	         }
-	        processSetList("AND",returnList,query_number);  
+
+	        processSetList(query_combinator,returnList,query_number);  
              
         }
         
@@ -418,19 +425,34 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 	 Set<String> all_uniprot_id=new HashSet<>();
 	 Set<String> all_ref_id=new HashSet<>();
 	 Set<String> all_ensembl_id=new HashSet<>();
-	
-	public void processSetList(String OperationList , List<Set<String>> returnList,int query_number) {	   
-			Set<String> finalIntersectionSet = returnList.get(0);
+	 List<List<String>> combinatorList = new ArrayList<>();	
+	public void processSetList(List<String> OperationList , List<Set<String>> returnList,int query_number) {	   
+			Set<String> finalIntersectionSet = returnList.get(returnList.size()-1);
+			//Set<String> lastintersection = new HashSet<>();
 	        Set<String> lastset = new HashSet<>();
-  	        OperationList="AND";
+  	       
+		//OperationList="AND";
   	        if(returnList.size()==1) {
                   lastset.addAll(finalIntersectionSet);
                          }
-       		 for(int i=1;i<returnList.size();i++) {
-       			 finalIntersectionSet.retainAll(returnList.get(i));
-       			 lastset.addAll(finalIntersectionSet);
-       		 }
-       		 collect_lastset.add(lastset);                         
+		 int index=1;
+		int a =returnList.size()-2;
+			 for(int i=returnList.size()-2;i>=0;i--) {
+						String combinator=OperationList.get(index);
+						if(combinator.equals("AND")) {
+								finalIntersectionSet.retainAll(returnList.get(i));
+						}
+						else if(combinator.equals("OR")) {
+										finalIntersectionSet.addAll(returnList.get(i));
+					  }
+						else if(combinator.equals("NOT")) {
+        				finalIntersectionSet.removeAll(returnList.get(i));
+        			 }
+			     index++;
+    	  }
+		index=1;
+		lastset.addAll(finalIntersectionSet);
+		collect_lastset.add(lastset);                         
 			 if(current_position==temp_map_size) {
 		      	 createTempTable(sessionID,collect_lastset);
 	       	 }
@@ -523,7 +545,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 		
 				}
 			else if(map_size==2) {
-				  	System.out.println("Store procedure for 2 set");
+				  
 				    
 				  	//GM2SET
 				  	//SET
@@ -641,7 +663,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		all_uniprot_id.clear(); 
 		all_ref_id.clear();
 		all_ensembl_id.clear();		
-			
+		combinatorList.clear();			
 
 	}
 
@@ -3212,15 +3234,12 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			
 			//32 
 			public CriteriaQuery searchProteinbyProtein_crossrefCrossref (String CROSSREF) {
-				 System.out.println("IN THE FUNCTION!!!");
 				CriteriaBuilder builder = em.getCriteriaBuilder();
 				CriteriaQuery<PROTEIN> crit = builder.createQuery(PROTEIN.class);
 				Root<PROTEIN> protein = crit.from(PROTEIN.class);
 				List<Predicate> restrictions = new ArrayList<>();
-				 System.out.println("RESTRICTIONS");
 				restrictions.add(builder.equal(protein.join("protein_crossref").get("CROSSREF"), CROSSREF));
 				crit.select(protein.get("ACCESSION")).where(restrictions.toArray(new Predicate[]{}));	          
-				 System.out.println("CRIT:" +  " " + crit);
 				return crit;    
 			}
 			

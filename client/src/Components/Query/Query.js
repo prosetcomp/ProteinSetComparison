@@ -39,31 +39,33 @@ class DocumentInput extends React.Component {
 }
 
 const fields = [
-            {label: 'Disease Accession', name: 'disease_accession'},
+            {label: 'UniprotKB Accession', name: 'protein_accession'},
+            {label: 'UniprotKB Entry Name', name: 'protein_id'},
+            {label: 'RefSeq Protein', name: 'refseq'},
+            {label: 'RefSeq Nucleotide', name: 'refseq_nt'},
+            {label: 'Ensembl Gene', name: 'ensembl'},
+            {label: 'Ensembl Protein', name: 'ensembl_pro'},
+            {label: 'Ensembl Transcript', name: 'ensembl_trs'},
+            {label: 'Gene ID', name: 'geneid'},
+            {label: 'Gene Name', name: 'gene_name'},
+            {label: 'EMBL', name: 'embl'},
+            {label: 'EMBL-CDS', name: 'embl-cds'},
+            {label: 'PDB', name: 'pdb_pdb'},
+            {label: 'GI', name: 'gi'},
+            {label: 'InterPro', name: 'domain_iprid'},
+            {label: 'InterPro Name', name: 'domain_name'},
+            {label: 'PFAM ID', name: 'domain_pfam'},
+            {label: 'GO ID (Biological Process)', name: 'go_id'},
+            {label: 'GO ID (Cellular Component)', name: 'go_id'},
+            {label: 'GO ID (Molecular Function)', name: 'go_id'},
+            {label: 'GO Name', name: 'goterms_name'},
             {label: 'Disease Acronym', name: 'disease_acronym'},
             {label: 'Disease Identifier', name: 'disease_identifier'},
-            {label: 'Gene ID', name: 'gene_geneid'},
-            {label: 'GO (Biological Process)', name: 'go_id'},
-            {label: 'GO (Cellular Component)', name: 'go_id'},
-            {label: 'GO (Molecular Function)', name: 'go_id'},
-            {label: 'GO Name', name: 'goterms_name'},
-            {label: 'Interpro', name: 'domain_iprid'},
-            {label: 'Interpro Name', name: 'domain_name'},
-            {label: 'MIM', name: 'disease_mim'},
-            {label: 'Organism Name', name: 'taxon_name'},
-            {label: 'PDB', name: 'pdb_pdb'},
-            {label: 'PDB Chain', name: 'pdb_chain'},
-            {label: 'Pfam', name: 'domain_pfam'},
-            {label: 'Protein Name', name: 'protein_name'},
-            {label: 'Protein Secondary Accession', name: 'secondary_accession'},
-            {label: 'Publication Title', name: 'publication_title'},
-            {label: 'Pubmed ID', name: 'publication_pmid'},
+            {label: 'MIM ID', name: 'disease_mim'},
             {label: 'Reactome ID', name: 'pathway_id'},
             {label: 'Reactome Name', name: 'pathway_name'},
-            {label: 'Reviewed', name: 'protein_isreviewed'},
-            {label: 'TaxonID', name: 'protein_taxonid'},
-            {label: 'Uniprot Accession', name: 'protein_accession'},
-            {label: 'Uniprot ID', name: 'protein_id'},
+            {label: 'Organism Name', name: 'taxon_name'},
+            {label: 'Taxon ID', name: 'protein_taxonid'},
             {label: 'Allergome', name: 'allergome'},
             {label: 'BioCyc', name: 'biocyc'},
             {label: 'BioGrid', name: 'biogrid'},
@@ -72,39 +74,25 @@ const fields = [
             {label: 'dictyBase', name: 'dictybase'},
             {label: 'DrugBank', name: 'drugbank'},
             {label: 'EchoBASE', name: 'echobase'},
-            {label: 'EMBL', name: 'embl'},
-            {label: 'EMBL-CDS', name: 'embl-cds'},
-            {label: 'Ensembl', name: 'ensembl'},
-            {label: 'EnsemblGenome', name: 'ensemblgenome'},
-            {label: 'EnsemblGenome_PRO', name: 'ensemblgenome_pro'},
-            {label: 'EnsemblGenome_TRS', name: 'ensemblgenome_trs'},
-            {label: 'Ensembl_PRO', name: 'ensembl_pro'},
-            {label: 'Ensembl_TRS', name: 'ensembl_trs'},
             {label: 'FlyBase', name: 'flybase'},
             {label: 'GeneCards', name: 'genecards'},
             {label: 'GeneDB', name: 'genedb'},
-            {label: 'GeneID', name: 'geneid'},
-            {label: 'Gene_Name', name: 'gene_name'},
-            {label: 'Gene_OrderedLocusName', name: 'gene_orderedlocusname'},
-            {label: 'Gene_ORFName', name: 'gene_orfname'},
             {label: 'GeneReviews', name: 'genereviews'},
-            {label: 'Gene_Synonym', name: 'gene_synonym'},
-            {label: 'GI', name: 'gi'},
             {label: 'HGNC', name: 'hgnc'},
             {label: 'KEGG', name: 'kegg'},
             {label: 'OrthoDB', name: 'orthodb'},
             {label: 'PeroxiBase', name: 'peroxibase'},
             {label: 'PomBase', name: 'pombase'},
+            {label: 'Protein Name', name: 'protein_name'},
+            {label: 'PMID', name: 'publication_pmid'},
+            {label: 'Publication Title', name: 'publication_title'},
             {label: 'REBASE', name: 'rebase'},
-            {label: 'RefSeq', name: 'refseq'},
-            {label: 'RefSeq_NT', name: 'refseq_nt'},
             {label: 'RGD', name: 'rgd'},
             {label: 'SGD', name: 'sgd'},
             {label: 'STRING', name: 'string'},
             {label: 'UniGene', name: 'unigene'},
             {label: 'UniParc', name: 'uniparc'},
             {label: 'UniPathway', name: 'unipathway'},
-            {label: 'UniProtKB-ID', name: 'uniprotkb-id'},
             {label: 'UniRef100', name: 'uniref100'},
             {label: 'UniRef50', name: 'uniref50'},
             {label: 'UniRef90', name: 'uniref90'},
@@ -112,11 +100,8 @@ const fields = [
             {label: 'WormBase', name: 'wormbase'},
             {label: 'Xenbase', name: 'xenbase'},
 ];
-const operators= [
 
-    {name: '=', label: '='},
 
-]
 const combinators=[
     {name: 'and', label: 'AND'},
 
@@ -135,7 +120,7 @@ const labels = {
       title: "Value"
   },
   removeRule: {
-      label: "DELETE",
+      label: "X",
       title: "Remove rule"
   },
   removeGroup: {
@@ -154,6 +139,14 @@ const labels = {
       title: "Logical Operation"
   }
 };
+
+const operators= [
+
+    {name: 'AND', label: 'AND'},
+    {name: 'OR', label: 'OR'},
+    {name: 'NOT', label: 'NOT'},
+
+]
 
 const options = [
   { value: 'uniprot_accession', label: 'Uniprot Accession' },
@@ -255,6 +248,7 @@ function logQuery(query) {
     controlQueryAndFileSize();
 
     queryresult=querybutton;
+
 
 
 }

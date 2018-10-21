@@ -42,7 +42,6 @@ public class PROTEIN_CONTROLLER {
 		Date date_time=new Date();
 		String concat_date = date.format(date_time);
 		String json = httpEntity.getBody();
-//		System.out.println("JSON=>" + json);
 		MessageDigest messageDigest;
 		String id_json=json+concat_date;
 		try {
@@ -54,9 +53,8 @@ public class PROTEIN_CONTROLLER {
 				stringBuffer.append(String.format("%02x", bytes & 0xff));
 			}
 
-			//System.out.println("data:" + id_json);
-		        id_json=stringBuffer.toString();
-		//	System.out.println(id_json);
+		    id_json=stringBuffer.toString();
+	
 		} catch (NoSuchAlgorithmException exception) {
 			// TODO Auto-generated catch block
 			exception.printStackTrace();
@@ -99,17 +97,25 @@ file_list_collect.add(file_name);
 }
 
 		List<List<String>> key_value_list = new ArrayList<List<String>>();
-			
+		 List<List<String>> key_value_combinator_list = new ArrayList<List<String>>();
+              			
 		 for(int i=0; i<resultNode.size();i++) {
 			  JsonNode resultNode2=resultNode.get(i).get("rules");
 			  List<String> key_value = new ArrayList<>();
+			  List<String> key_value_combinator = new ArrayList<>();
+                        
 			  for(int j=0; j<resultNode2.size();j++) {
 				  String name = resultNode2.get(j).get("field").asText();
 				  String value=resultNode2.get(j).get("value").asText();
 				  key_value.add(name+"="+value);
+				  String combinator=resultNode2.get(j).get("operator").asText();
+			    key_value_combinator.add(combinator);
 			  }
 			  key_value_list.add(key_value);
-			  key_value_preview.add(key_value);
+			  key_value_combinator_list.add(key_value_combinator);
+        key_value_preview.add(key_value);
+				key_value_preview.add(key_value_combinator);
+		
 		  }
 		
 		for(int i=0;i<file_list.size();i++) {
@@ -117,7 +123,7 @@ file_list_collect.add(file_name);
 			 
 		 }
 
-		protein_repo.iterateJsonObject(key_value_list,id_json,connection);		
+		protein_repo.iterateJsonObject(key_value_list,id_json,connection,key_value_combinator_list);		
          
             return ""+key_value_preview;
 }
