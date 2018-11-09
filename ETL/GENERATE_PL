@@ -1,0 +1,72 @@
+#!/bin/bash
+
+gunzip -c data/uniprot_sprot.dat.gz data/uniprot_trembl.dat.gz | perl generate_protein.pl
+
+sed -i  's/ \"/ /g' ./data/tax2name.pl
+sed -i  's/\" / /g' ./data/tax2name.pl
+
+perl generate_prot.pl
+
+gunzip -c data/uniprot_sprot.dat.gz data/uniprot_trembl.dat.gz | perl generate_primary2secondary.pl
+
+perl generate_taxon.pl
+
+perl generate_taxonhierarchy.pl
+
+perl generate_protpub.pl
+
+sort -u ./normalized_data/protein_publication.tsv > ./normalized_data/protein_publication2.tsv
+
+perl generate_protpdb.pl
+
+sort -u ./normalized_data/protein_pdb.tsv > ./normalized_data/protein_pdb2.tsv
+
+perl generate_domain.pl
+
+perl generate_protmim.pl
+
+perl generate_gene.pl
+
+cut -f4 ./normalized_data/gene.tsv > ./normalized_data/gene
+sed -i  's/\\/ /g' ./normalized_data/gene
+cut -f1,2,3 ./normalized_data/gene.tsv > ./normalized_data/gene3
+paste ./normalized_data/gene3 ./normalized_data/gene > ./normalized_data/gene.tsv
+rm ./normalized_data/gene
+rm ./normalized_data/gene3
+
+perl generate_pathways.pl
+
+perl generate_protpath.pl
+
+perl generate_protgene.pl
+
+perl refs.pl 
+
+perl generate_protcrossref.pl
+
+sort -u ./normalized_data/protein_crossref.tsv > ./normalized_data/protein_crossref2.tsv
+
+rm ./normalized_data/protein_crossref.tsv
+
+perl generate_goterms.pl
+
+perl generate_protgo.pl
+
+sort -u ./normalized_data/protein_ontology.tsv > ./normalized_data/protein_ontology2.tsv
+
+rm ./normalized_data/protein_ontology.tsv
+
+perl generate_protdomain.pl
+
+perl generate_domain.pl
+
+gunzip -c data/uniprot_sprot.dat.gz data/uniprot_trembl.dat.gz | perl generate_pubs.pl
+
+sort -u ./normalized_data/pmid2author.tsv > ./normalized_data/pmid2author2.tsv
+
+rm ./normalized_data/pmid2author.tsv 
+
+perl generate_pfam.pl
+perl generate_reactome.pl
+perl generate_go.pl
+perl generate_prot.pl
