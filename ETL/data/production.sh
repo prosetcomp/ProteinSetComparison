@@ -13,7 +13,7 @@ mv ../backupfiles/data/backup$x/production_script.sh ./
 sh ./GET_DATA
 
 #new normalized data generation
-sh ./GENERATE_PL
+sh ../GENERATE_PL
 
 #quality check 40 log to production.$x.log 
 perl ../quality/quality_check1.pl
