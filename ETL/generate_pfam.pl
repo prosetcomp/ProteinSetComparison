@@ -12,7 +12,7 @@ foreach $line (@lines){
         chomp($line);
         @cols = split(/\t/, $line);
         $ipr="IPR".$cols[1];
-        $url = "<a href=\"https://www.ebi.ac.uk/interpro/entry/".$ipr."\" target=\"_blank\">".$ipr."</a>";
+        $url = "<a href=\"https://www.ebi.ac.uk/interpro/entry/".$ipr."\" target=\"_blank\">".$ipr.": ".$cols[3]."</a>";
 
         @parents = split(/\;/,$ipr2parents{$ipr});
         $parstring="";
@@ -23,9 +23,9 @@ foreach $line (@lines){
         }
         if (exists $ipr2parents{$ipr}){
 
-                print OUT "$cols[0]\t$cols[1]\t$url\t$cols[3]\t$parstring\n";
+                print OUT "$cols[0]\t$cols[1]\t$url\t$parstring\n";
         }else{
-                print OUT "$cols[0]\t$cols[1]\t$url\t$cols[3]\t\n";
+                print OUT "$cols[0]\t$cols[1]\t$url\n";
         }
 }
 

@@ -61,14 +61,14 @@ foreach $line (@lines){
 
    		$go="GO:".$cols[0];
    		$name=$cols[1];
-   		$url="<a href=\"http://amigo.geneontology.org/amigo/term/".$go."\" target=\"_blank\">".$go."</a>";
+   		$url="<a href=\"http://amigo.geneontology.org/amigo/term/".$go."\" target=\"_blank\">".$go.": ".$name."</a>";
         if ( $cols[2] == 0 ){
 
-                print OUT2 "$cols[0]\t"."$url\t$name\t$parstring\t$deep\n";
+                print OUT2 "$cols[0]\t"."$url\t$parstring\t$deep\n";
 
         }elsif ( $cols[2] == 1 ){
 
-                print OUT3 "$cols[0]\t"."$url\t$name\t$parstring\t$deep\n";
+                print OUT3 "$cols[0]\t"."$url\t$parstring\t$deep\n";
         }
         
 }

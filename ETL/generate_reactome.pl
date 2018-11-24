@@ -53,8 +53,8 @@ foreach $line (@lines){
 
         }
         $react_id="R-".$cols[2]."-".$cols[0];
-        $url="<a href=\"https://www.reactome.org/content/detail/".$react_id."\" target=\"_blank\">".$react_id."</a>";
-        print OUT2 "$cols[0]\t$cols[2]\t$url\t$cols[1]\t$parstring\n";
+        $url="<a href=\"https://www.reactome.org/content/detail/".$react_id."\" target=\"_blank\">".$react_id.":".$cols[1]."</a>";
+        print OUT2 "$cols[0]\t$cols[2]\t$url\t$parstring\n";
 
 
 }
