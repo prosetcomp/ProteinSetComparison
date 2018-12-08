@@ -22,7 +22,8 @@ import java.util.regex.*;
 import com.server.server.model.PROTEIN;
 import com.server.server.repository.ProteinRepositoryCustom;
 import java.util.HashMap;
-
+import javax.persistence.criteria.Join;
+import com.server.server.model.PATHWAY;
 
 @Service
 public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
@@ -65,6 +66,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 						Matcher matcher3 = pattern3.matcher(value);
 						Matcher matcher4 = pattern4.matcher(value);
 						String regex_part = null;
+						String species=null;
 						if (matcher.find())
 						{
 							regex_part=matcher.group();
@@ -87,6 +89,8 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 						else if (matcher4.find())
 						{
 							regex_part=matcher4.group();
+							String[] parts_regex=regex_part.split("-");
+						        species = parts_regex[1];
 							value=value.replace(regex_part, "");
 						   
 						} 
@@ -121,8 +125,12 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 					            	temp_criteria.add(cq);
 					           }
 							  else if (key.equals("pathway_id")) {
-							          CriteriaQuery cq =searchProteinbyPathwayId(foo);
-					            	temp_criteria.add(cq);
+							System.out.println("Species " + species);	   
+						        CriteriaQuery cq =searchProteinbyPathwayId(foo,species);
+					        	// CriteriaQuery cq = searchProteinbyPathwaySpecies (species);    
+						 	temp_criteria.add(cq);
+							 System.out.println("Species " + species);
+							species=null;
 					           }
 							  else if (key.equals("protein_isreviewed")) {
 					            	CriteriaQuery cq =searchProteinbyProteinIs_reviewed(foo);
@@ -400,7 +408,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 			 temp_map_size=0;   			    		 
         	}
 
-        public void runCriteriaList(List<CriteriaQuery> cl,List<String> combinator_query,int query_number){
+        public void runCriteriaList(List<CriteriaQuery> cl,List<String> combinator_query,int query_number) throws SQLException {
 	        	int i = cl.size()-1;
 	        List<Set<String>> returnList= new ArrayList<Set<String>>();    
 		 List<String> query_combinator = new ArrayList<>();
@@ -417,20 +425,23 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 	        processSetList(query_combinator,returnList,query_number);  
              
         }
-        
-  
+	 String check="";
+     public String extendedQueryNumber() {
+    	 	return check;
+     }
 
+        
 	 List<Set<String>> collect_lastset =new ArrayList<Set<String>>();
 	 Set<String> all_uniprot_accession=new HashSet<>();
 	 Set<String> all_uniprot_id=new HashSet<>();
 	 Set<String> all_ref_id=new HashSet<>();
 	 Set<String> all_ensembl_id=new HashSet<>();
 	 List<List<String>> combinatorList = new ArrayList<>();	
-	public void processSetList(List<String> OperationList , List<Set<String>> returnList,int query_number) {	   
+	public void processSetList(List<String> OperationList , List<Set<String>> returnList,int query_number) throws SQLException {	   
 			Set<String> finalIntersectionSet = returnList.get(returnList.size()-1);
 			//Set<String> lastintersection = new HashSet<>();
 	        Set<String> lastset = new HashSet<>();
-  	       
+		        
 		//OperationList="AND";
   	        if(returnList.size()==1) {
                   lastset.addAll(finalIntersectionSet);
@@ -452,7 +463,22 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
     	  }
 		index=1;
 		lastset.addAll(finalIntersectionSet);
+		//System.out.println("Final Intersection Set2"  + finalIntersectionSet);
+//		System.out.println("LastSet " + lastset);
 		collect_lastset.add(lastset);                         
+			for(int i =0 ; i<collect_lastset.size();i++) {
+			         if(collect_lastset.get(i).size()>5000) {
+                                         check ="More than 5000 query!!!!!";
+                               //          System.out.println("More than 500 before creating a table!");
+                                         extendedQueryNumber();
+                       			 clearEverything(conn);
+			                  return;                                         
+                                 }
+                                else {
+                                         check="";
+                                 }
+			
+                         }    
 			 if(current_position==temp_map_size) {
 		      	 createTempTable(sessionID,collect_lastset);
 	       	 }
@@ -502,7 +528,8 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 				break;
 			     }
 	
-			   }         
+			   }
+				         
 		 } catch (SQLException e) {
 		        // TODO Auto-generated catch block
 		        e.printStackTrace();
@@ -650,6 +677,14 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 			}
 }
 		
+public void clearEverything(Connection conn) throws SQLException {
+	collect_lastset.clear();
+	all_uniprot_accession.clear();
+	all_uniprot_id.clear(); 
+	all_ref_id.clear();
+	 all_ensembl_id.clear();
+	combinatorList.clear();
+}	
     
 public void  callJoinFunction(Connection conn) throws SQLException {
 
@@ -658,18 +693,16 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	    call_PW_StoredProcedure(conn);
 	    call_DM_StoredProcedure(conn);
 	    call_PROT_StoredProcedure(conn);
-		collect_lastset.clear();
-		all_uniprot_accession.clear();
-		all_uniprot_id.clear(); 
-		all_ref_id.clear();
-		all_ensembl_id.clear();		
-		combinatorList.clear();			
-
+	   clearEverything(conn);
 	}
-
 
 	public List<List<HashMap<String,String>>> call_GM_StoredProcedure(Connection connection) throws SQLException{
 			List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
+			List<HashMap<String, String>> notReturn = new ArrayList<HashMap<String, String>>();
+			HashMap<String, String> notReturnMessage = new HashMap<String, String>();
+			notReturnMessage.put("Warn", "More than 5000");
+			notReturn.add(notReturnMessage);
+        	 
 			List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 			if(map_size==1) {
 				 CallableStatement gm_1set_join =connection.prepareCall("{ call 1SET_GM_a_(?) }");
@@ -677,14 +710,16 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	             gm_1set_join.execute(); 
 	             ResultSet rs_gm_a_join =gm_1set_join.getResultSet();	
 	             while(rs_gm_a_join.next()) {
+				System.out.println("RS_GM="+rs_gm_a_join);
 		            	  HashMap<String, String> data = new HashMap<String, String>();
 		            	  data.put("go_id", rs_gm_a_join.getString("GO_ID"));
-		            	  data.put("name", rs_gm_a_join.getString("NAME"));
+		            	//  data.put("name", rs_gm_a_join.getString("NAME"));
 		            	  data.put("parents", rs_gm_a_join.getString("PARENTS"));
 		            	  data.put("depth", rs_gm_a_join.getString("DEPTH"));
 		            	  result.add(data);
 		            	  	
-		        } 
+		        }
+		System.out.println("Result"+result); 
 	             result2.add(result);
 		   
 	      }
@@ -702,7 +737,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 				 while(rs_gm_a_join.next()) {
 		            	  HashMap<String, String> data = new HashMap<String, String>();
 		            	  data.put("go_id", rs_gm_a_join.getString("GO_ID"));
-		            	  data.put("name", rs_gm_a_join.getString("NAME"));
+		           // 	  data.put("name", rs_gm_a_join.getString("NAME"));
 		            	  data.put("parents", rs_gm_a_join.getString("PARENTS"));
 		            	  data.put("depth", rs_gm_a_join.getString("DEPTH"));
 		            	  result_a.add(data);
@@ -716,7 +751,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	             while(rs_gm_b_join.next()) {
             	 		  HashMap<String, String> data = new HashMap<String, String>();
 	   	            	  data.put("go_id", rs_gm_b_join.getString("GO_ID"));
-		            	  data.put("name", rs_gm_b_join.getString("NAME"));
+		            //	  data.put("name", rs_gm_b_join.getString("NAME"));
 		            	  data.put("parents", rs_gm_b_join.getString("PARENTS"));
 		            	  data.put("depth", rs_gm_b_join.getString("DEPTH"));
 		            	  result_b.add(data);
@@ -730,7 +765,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			     while(rs_gm_c_join.next()) {
   	            	  	  HashMap<String, String> data = new HashMap<String, String>();
 	  	            	  data.put("go_id", rs_gm_c_join.getString("GO_ID"));
-		            	  data.put("name", rs_gm_c_join.getString("NAME"));
+		            //	  data.put("name", rs_gm_c_join.getString("NAME"));
 		            	  data.put("parents", rs_gm_c_join.getString("PARENTS"));
 		            	  data.put("depth", rs_gm_c_join.getString("DEPTH"));
 		            	  result_c.add(data);
@@ -761,7 +796,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_gm_a_join.next()) {
  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("go_id", rs_gm_a_join.getString("GO_ID"));
- 	            	  	   data.put("name", rs_gm_a_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_gm_a_join.getString("NAME"));
  	            	  	   data.put("parents", rs_gm_a_join.getString("PARENTS"));
  	            	  	   data.put("depth", rs_gm_a_join.getString("DEPTH"));
  	            	  	   result_a.add(data);
@@ -775,7 +810,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gm_b_join.next()) {
 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("go_id", rs_gm_b_join.getString("GO_ID"));
-	            	  	   data.put("name", rs_gm_b_join.getString("NAME"));
+	            	  //	   data.put("name", rs_gm_b_join.getString("NAME"));
 	            	  	   data.put("parents", rs_gm_b_join.getString("PARENTS"));
 	            	  	   data.put("depth", rs_gm_b_join.getString("DEPTH"));
 	            	  	   result_b.add(data);
@@ -789,7 +824,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gm_c_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("go_id", rs_gm_c_join.getString("GO_ID"));
-	            	  	   data.put("name", rs_gm_c_join.getString("NAME"));
+	            	  //	   data.put("name", rs_gm_c_join.getString("NAME"));
 	            	  	   data.put("parents", rs_gm_c_join.getString("PARENTS"));
 	            	  	   data.put("depth", rs_gm_c_join.getString("DEPTH"));
 	            	  	   result_c.add(data);
@@ -803,7 +838,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gm_d_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("go_id", rs_gm_d_join.getString("GO_ID"));
-	            	  	   data.put("name", rs_gm_d_join.getString("NAME"));
+	            	  //	   data.put("name", rs_gm_d_join.getString("NAME"));
 	            	  	   data.put("parents", rs_gm_d_join.getString("PARENTS"));
 	            	  	   data.put("depth", rs_gm_d_join.getString("DEPTH"));
 	            	  	   result_d.add(data);
@@ -817,7 +852,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_gm_e_join.next()) {
 	 	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("go_id", rs_gm_e_join.getString("GO_ID"));
-	          	  	   data.put("name", rs_gm_e_join.getString("NAME"));
+	          	  //	   data.put("name", rs_gm_e_join.getString("NAME"));
 	          	  	   data.put("parents", rs_gm_e_join.getString("PARENTS"));
 	          	  	   data.put("depth", rs_gm_e_join.getString("DEPTH"));
 	          	  	   result_e.add(data);
@@ -831,7 +866,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_gm_f_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("go_id", rs_gm_f_join.getString("GO_ID"));
-	          	  	   data.put("name", rs_gm_f_join.getString("NAME"));
+	          	  //	   data.put("name", rs_gm_f_join.getString("NAME"));
 	          	  	   data.put("parents", rs_gm_f_join.getString("PARENTS"));
 	          	  	   data.put("depth", rs_gm_f_join.getString("DEPTH"));
 	          	  	   result_f.add(data);
@@ -845,7 +880,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_gm_g_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("go_id", rs_gm_g_join.getString("GO_ID"));
-	          	  	   data.put("name", rs_gm_g_join.getString("NAME"));
+	          	  //	   data.put("name", rs_gm_g_join.getString("NAME"));
 	          	  	   data.put("parents", rs_gm_g_join.getString("PARENTS"));
 	          	  	   data.put("depth", rs_gm_g_join.getString("DEPTH"));
 	          	  	   result_g.add(data);
@@ -885,7 +920,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	 	              while(rs_gm_a_join.next()) {
 	 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	 	            	  	   data.put("go_id", rs_gm_a_join.getString("GO_ID"));
-	 	            	  	   data.put("name", rs_gm_a_join.getString("NAME"));
+	 	            //	  	   data.put("name", rs_gm_a_join.getString("NAME"));
 	 	            	  	   data.put("parents", rs_gm_a_join.getString("PARENTS"));
 	 	            	  	   data.put("depth", rs_gm_a_join.getString("DEPTH"));
 	 	            	  	   result_a.add(data);
@@ -899,7 +934,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		              while(rs_gm_b_join.next()) {
 		            	  	   HashMap<String, String> data = new HashMap<String, String>();
 		            	  	   data.put("go_id", rs_gm_b_join.getString("GO_ID"));
-		            	  	   data.put("name", rs_gm_b_join.getString("NAME"));
+		            	 // 	   data.put("name", rs_gm_b_join.getString("NAME"));
 		            	  	   data.put("parents", rs_gm_b_join.getString("PARENTS"));
 		            	  	   data.put("depth", rs_gm_b_join.getString("DEPTH"));
 		            	  	   result_b.add(data);
@@ -913,7 +948,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		              while(rs_gm_c_join.next()) {
 			            	   HashMap<String, String> data = new HashMap<String, String>();
 		            	  	   data.put("go_id", rs_gm_c_join.getString("GO_ID"));
-		            	  	   data.put("name", rs_gm_c_join.getString("NAME"));
+		            	  //	   data.put("name", rs_gm_c_join.getString("NAME"));
 		            	  	   data.put("parents", rs_gm_c_join.getString("PARENTS"));
 		            	  	   data.put("depth", rs_gm_c_join.getString("DEPTH"));
 		            	  	   result_c.add(data);
@@ -927,7 +962,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		              while(rs_gm_d_join.next()) {
 			            	   HashMap<String, String> data = new HashMap<String, String>();
 		            	  	   data.put("go_id", rs_gm_d_join.getString("GO_ID"));
-		            	  	   data.put("name", rs_gm_d_join.getString("NAME"));
+		            	  //	   data.put("name", rs_gm_d_join.getString("NAME"));
 		            	  	   data.put("parents", rs_gm_d_join.getString("PARENTS"));
 		            	  	   data.put("depth", rs_gm_d_join.getString("DEPTH"));
 		            	  	   result_d.add(data);
@@ -941,7 +976,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	 	              while(rs_gm_e_join.next()) {
 		 	            	   HashMap<String, String> data = new HashMap<String, String>();
 		          	  	   data.put("go_id", rs_gm_e_join.getString("GO_ID"));
-		          	  	   data.put("name", rs_gm_e_join.getString("NAME"));
+		          	  //	   data.put("name", rs_gm_e_join.getString("NAME"));
 		          	  	   data.put("parents", rs_gm_e_join.getString("PARENTS"));
 		          	  	   data.put("depth", rs_gm_e_join.getString("DEPTH"));
 		          	  	   result_e.add(data);
@@ -955,7 +990,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	   	              while(rs_gm_f_join.next()) {
 		   	            	   HashMap<String, String> data = new HashMap<String, String>();
 		          	  	   data.put("go_id", rs_gm_f_join.getString("GO_ID"));
-		          	  	   data.put("name", rs_gm_f_join.getString("NAME"));
+		          	  //	   data.put("name", rs_gm_f_join.getString("NAME"));
 		          	  	   data.put("parents", rs_gm_f_join.getString("PARENTS"));
 		          	  	   data.put("depth", rs_gm_f_join.getString("DEPTH"));
 		          	  	   result_f.add(data);
@@ -969,7 +1004,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	   	              while(rs_gm_g_join.next()) {
 		   	            	   HashMap<String, String> data = new HashMap<String, String>();
 		          	  	   data.put("go_id", rs_gm_g_join.getString("GO_ID"));
-		          	  	   data.put("name", rs_gm_g_join.getString("NAME"));
+		          	  //	   data.put("name", rs_gm_g_join.getString("NAME"));
 		          	  	   data.put("parents", rs_gm_g_join.getString("PARENTS"));
 		          	  	   data.put("depth", rs_gm_g_join.getString("DEPTH"));
 		          	  	   result_g.add(data);
@@ -982,7 +1017,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	  	              while(rs_gm_h_join.next()) {
 	  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	  	            	  	   data.put("go_id", rs_gm_h_join.getString("GO_ID"));
-	  	            	  	   data.put("name", rs_gm_h_join.getString("NAME"));
+	  	            	  //	   data.put("name", rs_gm_h_join.getString("NAME"));
 	  	            	  	   data.put("parents", rs_gm_h_join.getString("PARENTS"));
 	  	            	  	   data.put("depth", rs_gm_h_join.getString("DEPTH"));
 	  	            	  	   result_h.add(data);
@@ -996,7 +1031,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	 	              while(rs_gm_i_join.next()) {
 	 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	 	            	  	   data.put("go_id", rs_gm_i_join.getString("GO_ID"));
-	 	            	  	   data.put("name", rs_gm_i_join.getString("NAME"));
+	 	            	  //	   data.put("name", rs_gm_i_join.getString("NAME"));
 	 	            	  	   data.put("parents", rs_gm_i_join.getString("PARENTS"));
 	 	            	  	   data.put("depth", rs_gm_i_join.getString("DEPTH"));
 	 	            	  	   result_i.add(data);
@@ -1010,7 +1045,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	 	              while(rs_gm_j_join.next()) {
 	 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	 	            	  	   data.put("go_id", rs_gm_j_join.getString("GO_ID"));
-	 	            	  	   data.put("name", rs_gm_j_join.getString("NAME"));
+	 	            	  //	   data.put("name", rs_gm_j_join.getString("NAME"));
 	 	            	  	   data.put("parents", rs_gm_j_join.getString("PARENTS"));
 	 	            	  	   data.put("depth", rs_gm_j_join.getString("DEPTH"));
 	 	            	  	   result_j.add(data);
@@ -1024,7 +1059,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	 	              while(rs_gm_k_join.next()) {
 	 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	 	            	  	   data.put("go_id", rs_gm_k_join.getString("GO_ID"));
-	 	            	  	   data.put("name", rs_gm_k_join.getString("NAME"));
+	 	            	  //	   data.put("name", rs_gm_k_join.getString("NAME"));
 	 	            	  	   data.put("parents", rs_gm_k_join.getString("PARENTS"));
 	 	            	  	   data.put("depth", rs_gm_k_join.getString("DEPTH"));
 	 	            	  	   result_k.add(data);
@@ -1038,7 +1073,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	  	              while(rs_gm_l_join.next()) {
 	 	 	            	   HashMap<String, String> data = new HashMap<String, String>();
 	 	          	  	   data.put("go_id", rs_gm_l_join.getString("GO_ID"));
-	 	          	  	   data.put("name", rs_gm_l_join.getString("NAME"));
+	 	          	  //	   data.put("name", rs_gm_l_join.getString("NAME"));
 	 	          	  	   data.put("parents", rs_gm_l_join.getString("PARENTS"));
 	 	          	  	   data.put("depth", rs_gm_l_join.getString("DEPTH"));
 	 	          	  	   result_l.add(data);
@@ -1052,7 +1087,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	    	              while(rs_gm_m_join.next()) {
 	 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	 	          	  	   data.put("go_id", rs_gm_m_join.getString("GO_ID"));
-	 	          	  	   data.put("name", rs_gm_m_join.getString("NAME"));
+	 	          	  //	   data.put("name", rs_gm_m_join.getString("NAME"));
 	 	          	  	   data.put("parents", rs_gm_m_join.getString("PARENTS"));
 	 	          	  	   data.put("depth", rs_gm_m_join.getString("DEPTH"));
 	 	          	  	   result_m.add(data);
@@ -1066,7 +1101,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	    	              while(rs_gm_n_join.next()) {
 	 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	 	          	  	   data.put("go_id", rs_gm_n_join.getString("GO_ID"));
-	 	          	  	   data.put("name", rs_gm_n_join.getString("NAME"));
+	 	          	  //	   data.put("name", rs_gm_n_join.getString("NAME"));
 	 	          	  	   data.put("parents", rs_gm_n_join.getString("PARENTS"));
 	 	          	  	   data.put("depth", rs_gm_n_join.getString("DEPTH"));
 	 	          	  	   result_n.add(data);
@@ -1079,7 +1114,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	    	              while(rs_gm_o_join.next()) {
 	 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	 	          	  	   data.put("go_id", rs_gm_o_join.getString("GO_ID"));
-	 	          	  	   data.put("name", rs_gm_o_join.getString("NAME"));
+	 	          	  //	   data.put("name", rs_gm_o_join.getString("NAME"));
 	 	          	  	   data.put("parents", rs_gm_o_join.getString("PARENTS"));
 	 	          	  	   data.put("depth", rs_gm_o_join.getString("DEPTH"));
 	 	          	  	   result_o.add(data);
@@ -1101,6 +1136,15 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	    	              result2.add(result_o);
 				
 				}
+			for(int i =0 ; i<result2.size();i++) {
+			
+				if(result2.get(i).size()>5000) {
+				//	result2.clear();
+				//	result2.add(notReturn);
+					return result2;
+					
+				}
+			}
 			return result2;
 			
 			
@@ -1110,6 +1154,11 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	
 	public List<List<HashMap<String,String>>> call_GB_StoredProcedure(Connection connection) throws SQLException{
 		List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
+		List<HashMap<String, String>> notReturn = new ArrayList<HashMap<String, String>>();
+		HashMap<String, String> notReturnMessage = new HashMap<String, String>();
+		notReturnMessage.put("Warn", "More than 5000");
+		notReturn.add(notReturnMessage);
+        	 
 		List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 		if(map_size==1) {
 			 CallableStatement gb_1set_join =connection.prepareCall("{ call 1SET_GB_a_(?) }");
@@ -1119,7 +1168,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
              while(rs_gb_a_join.next()) {
 	            	  HashMap<String, String> data = new HashMap<String, String>();
 	            	  data.put("go_id", rs_gb_a_join.getString("GO_ID"));
-	            	  data.put("name", rs_gb_a_join.getString("NAME"));
+	            	  //data.put("name", rs_gb_a_join.getString("NAME"));
 	            	  data.put("parents", rs_gb_a_join.getString("PARENTS"));
 	            	  data.put("depth", rs_gb_a_join.getString("DEPTH"));
 	            	  result.add(data);
@@ -1141,7 +1190,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			 while(rs_gb_a_join.next()) {
 	            	  HashMap<String, String> data = new HashMap<String, String>();
 	            	  data.put("go_id", rs_gb_a_join.getString("GO_ID"));
-	            	  data.put("name", rs_gb_a_join.getString("NAME"));
+	            	  //data.put("name", rs_gb_a_join.getString("NAME"));
 	            	  data.put("parents", rs_gb_a_join.getString("PARENTS"));
 	            	  data.put("depth", rs_gb_a_join.getString("DEPTH"));
 	            	  result_a.add(data);
@@ -1155,7 +1204,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	             while(rs_gb_b_join.next()) {
         	 		  HashMap<String, String> data = new HashMap<String, String>();
    	            	  data.put("go_id", rs_gb_b_join.getString("GO_ID"));
-	            	  data.put("name", rs_gb_b_join.getString("NAME"));
+	            	  //data.put("name", rs_gb_b_join.getString("NAME"));
 	            	  data.put("parents", rs_gb_b_join.getString("PARENTS"));
 	            	  data.put("depth", rs_gb_b_join.getString("DEPTH"));
 	            	  result_b.add(data);
@@ -1169,7 +1218,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		     while(rs_gb_c_join.next()) {
 	            	  	  HashMap<String, String> data = new HashMap<String, String>();
   	            	  data.put("go_id", rs_gb_c_join.getString("GO_ID"));
-	            	  data.put("name", rs_gb_c_join.getString("NAME"));
+	            	  //data.put("name", rs_gb_c_join.getString("NAME"));
 	            	  data.put("parents", rs_gb_c_join.getString("PARENTS"));
 	            	  data.put("depth", rs_gb_c_join.getString("DEPTH"));
 	            	  result_c.add(data);
@@ -1200,7 +1249,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gb_a_join.next()) {
 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("go_id", rs_gb_a_join.getString("GO_ID"));
-	            	  	   data.put("name", rs_gb_a_join.getString("NAME"));
+	            	  //	   data.put("name", rs_gb_a_join.getString("NAME"));
 	            	  	   data.put("parents", rs_gb_a_join.getString("PARENTS"));
 	            	  	   data.put("depth", rs_gb_a_join.getString("DEPTH"));
 	            	  	   result_a.add(data);
@@ -1214,7 +1263,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_gb_b_join.next()) {
             	  	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("go_id", rs_gb_b_join.getString("GO_ID"));
-            	  	   data.put("name", rs_gb_b_join.getString("NAME"));
+            	  	   //data.put("name", rs_gb_b_join.getString("NAME"));
             	  	   data.put("parents", rs_gb_b_join.getString("PARENTS"));
             	  	   data.put("depth", rs_gb_b_join.getString("DEPTH"));
             	  	   result_b.add(data);
@@ -1228,7 +1277,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_gb_c_join.next()) {
 	            	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("go_id", rs_gb_c_join.getString("GO_ID"));
-            	  	   data.put("name", rs_gb_c_join.getString("NAME"));
+            	  	   //data.put("name", rs_gb_c_join.getString("NAME"));
             	  	   data.put("parents", rs_gb_c_join.getString("PARENTS"));
             	  	   data.put("depth", rs_gb_c_join.getString("DEPTH"));
             	  	   result_c.add(data);
@@ -1242,7 +1291,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_gb_d_join.next()) {
 	            	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("go_id", rs_gb_d_join.getString("GO_ID"));
-            	  	   data.put("name", rs_gb_d_join.getString("NAME"));
+            	  	   //data.put("name", rs_gb_d_join.getString("NAME"));
             	  	   data.put("parents", rs_gb_d_join.getString("PARENTS"));
             	  	   data.put("depth", rs_gb_d_join.getString("DEPTH"));
             	  	   result_d.add(data);
@@ -1256,7 +1305,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gb_e_join.next()) {
  	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("go_id", rs_gb_e_join.getString("GO_ID"));
-          	  	   data.put("name", rs_gb_e_join.getString("NAME"));
+          	  	   //data.put("name", rs_gb_e_join.getString("NAME"));
           	  	   data.put("parents", rs_gb_e_join.getString("PARENTS"));
           	  	   data.put("depth", rs_gb_e_join.getString("DEPTH"));
           	  	   result_e.add(data);
@@ -1270,7 +1319,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gb_f_join.next()) {
    	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("go_id", rs_gb_f_join.getString("GO_ID"));
-          	  	   data.put("name", rs_gb_f_join.getString("NAME"));
+          	  	  // data.put("name", rs_gb_f_join.getString("NAME"));
           	  	   data.put("parents", rs_gb_f_join.getString("PARENTS"));
           	  	   data.put("depth", rs_gb_f_join.getString("DEPTH"));
           	  	   result_f.add(data);
@@ -1284,7 +1333,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gb_g_join.next()) {
    	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("go_id", rs_gb_g_join.getString("GO_ID"));
-          	  	   data.put("name", rs_gb_g_join.getString("NAME"));
+          	  	  // data.put("name", rs_gb_g_join.getString("NAME"));
           	  	   data.put("parents", rs_gb_g_join.getString("PARENTS"));
           	  	   data.put("depth", rs_gb_g_join.getString("DEPTH"));
           	  	   result_g.add(data);
@@ -1324,7 +1373,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_gb_a_join.next()) {
  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("go_id", rs_gb_a_join.getString("GO_ID"));
- 	            	  	   data.put("name", rs_gb_a_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_gb_a_join.getString("NAME"));
  	            	  	   data.put("parents", rs_gb_a_join.getString("PARENTS"));
  	            	  	   data.put("depth", rs_gb_a_join.getString("DEPTH"));
  	            	  	   result_a.add(data);
@@ -1338,7 +1387,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gb_b_join.next()) {
 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("go_id", rs_gb_b_join.getString("GO_ID"));
-	            	  	   data.put("name", rs_gb_b_join.getString("NAME"));
+	            	  //	   data.put("name", rs_gb_b_join.getString("NAME"));
 	            	  	   data.put("parents", rs_gb_b_join.getString("PARENTS"));
 	            	  	   data.put("depth", rs_gb_b_join.getString("DEPTH"));
 	            	  	   result_b.add(data);
@@ -1352,7 +1401,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gb_c_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("go_id", rs_gb_c_join.getString("GO_ID"));
-	            	  	   data.put("name", rs_gb_c_join.getString("NAME"));
+	            	  //	   data.put("name", rs_gb_c_join.getString("NAME"));
 	            	  	   data.put("parents", rs_gb_c_join.getString("PARENTS"));
 	            	  	   data.put("depth", rs_gb_c_join.getString("DEPTH"));
 	            	  	   result_c.add(data);
@@ -1366,7 +1415,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_gb_d_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("go_id", rs_gb_d_join.getString("GO_ID"));
-	            	  	   data.put("name", rs_gb_d_join.getString("NAME"));
+	            	  //	   data.put("name", rs_gb_d_join.getString("NAME"));
 	            	  	   data.put("parents", rs_gb_d_join.getString("PARENTS"));
 	            	  	   data.put("depth", rs_gb_d_join.getString("DEPTH"));
 	            	  	   result_d.add(data);
@@ -1380,7 +1429,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_gb_e_join.next()) {
 	 	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("go_id", rs_gb_e_join.getString("GO_ID"));
-	          	  	   data.put("name", rs_gb_e_join.getString("NAME"));
+	          	  //	   data.put("name", rs_gb_e_join.getString("NAME"));
 	          	  	   data.put("parents", rs_gb_e_join.getString("PARENTS"));
 	          	  	   data.put("depth", rs_gb_e_join.getString("DEPTH"));
 	          	  	   result_e.add(data);
@@ -1394,7 +1443,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_gb_f_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("go_id", rs_gb_f_join.getString("GO_ID"));
-	          	  	   data.put("name", rs_gb_f_join.getString("NAME"));
+	          	  //	   data.put("name", rs_gb_f_join.getString("NAME"));
 	          	  	   data.put("parents", rs_gb_f_join.getString("PARENTS"));
 	          	  	   data.put("depth", rs_gb_f_join.getString("DEPTH"));
 	          	  	   result_f.add(data);
@@ -1408,7 +1457,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_gb_g_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("go_id", rs_gb_g_join.getString("GO_ID"));
-	          	  	   data.put("name", rs_gb_g_join.getString("NAME"));
+	          	  //	   data.put("name", rs_gb_g_join.getString("NAME"));
 	          	  	   data.put("parents", rs_gb_g_join.getString("PARENTS"));
 	          	  	   data.put("depth", rs_gb_g_join.getString("DEPTH"));
 	          	  	   result_g.add(data);
@@ -1421,7 +1470,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
   	              while(rs_gb_h_join.next()) {
   	            	  	   HashMap<String, String> data = new HashMap<String, String>();
   	            	  	   data.put("go_id", rs_gb_h_join.getString("GO_ID"));
-  	            	  	   data.put("name", rs_gb_h_join.getString("NAME"));
+  	            	  //	   data.put("name", rs_gb_h_join.getString("NAME"));
   	            	  	   data.put("parents", rs_gb_h_join.getString("PARENTS"));
   	            	  	   data.put("depth", rs_gb_h_join.getString("DEPTH"));
   	            	  	   result_h.add(data);
@@ -1435,7 +1484,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_gb_i_join.next()) {
  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("go_id", rs_gb_i_join.getString("GO_ID"));
- 	            	  	   data.put("name", rs_gb_i_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_gb_i_join.getString("NAME"));
  	            	  	   data.put("parents", rs_gb_i_join.getString("PARENTS"));
  	            	  	   data.put("depth", rs_gb_i_join.getString("DEPTH"));
  	            	  	   result_i.add(data);
@@ -1449,7 +1498,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_gb_j_join.next()) {
  		            	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("go_id", rs_gb_j_join.getString("GO_ID"));
- 	            	  	   data.put("name", rs_gb_j_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_gb_j_join.getString("NAME"));
  	            	  	   data.put("parents", rs_gb_j_join.getString("PARENTS"));
  	            	  	   data.put("depth", rs_gb_j_join.getString("DEPTH"));
  	            	  	   result_j.add(data);
@@ -1463,7 +1512,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_gb_k_join.next()) {
  		            	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("go_id", rs_gb_k_join.getString("GO_ID"));
- 	            	  	   data.put("name", rs_gb_k_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_gb_k_join.getString("NAME"));
  	            	  	   data.put("parents", rs_gb_k_join.getString("PARENTS"));
  	            	  	   data.put("depth", rs_gb_k_join.getString("DEPTH"));
  	            	  	   result_k.add(data);
@@ -1477,7 +1526,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
   	              while(rs_gb_l_join.next()) {
  	 	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("go_id", rs_gb_l_join.getString("GO_ID"));
- 	          	  	   data.put("name", rs_gb_l_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_gb_l_join.getString("NAME"));
  	          	  	   data.put("parents", rs_gb_l_join.getString("PARENTS"));
  	          	  	   data.put("depth", rs_gb_l_join.getString("DEPTH"));
  	          	  	   result_l.add(data);
@@ -1491,7 +1540,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_gb_m_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("go_id", rs_gb_m_join.getString("GO_ID"));
- 	          	  	   data.put("name", rs_gb_m_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_gb_m_join.getString("NAME"));
  	          	  	   data.put("parents", rs_gb_m_join.getString("PARENTS"));
  	          	  	   data.put("depth", rs_gb_m_join.getString("DEPTH"));
  	          	  	   result_m.add(data);
@@ -1505,7 +1554,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_gb_n_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("go_id", rs_gb_n_join.getString("GO_ID"));
- 	          	  	   data.put("name", rs_gb_n_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_gb_n_join.getString("NAME"));
  	          	  	   data.put("parents", rs_gb_n_join.getString("PARENTS"));
  	          	  	   data.put("depth", rs_gb_n_join.getString("DEPTH"));
  	          	  	   result_n.add(data);
@@ -1518,7 +1567,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_gb_o_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("go_id", rs_gb_o_join.getString("GO_ID"));
- 	          	  	   data.put("name", rs_gb_o_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_gb_o_join.getString("NAME"));
  	          	  	   data.put("parents", rs_gb_o_join.getString("PARENTS"));
  	          	  	   data.put("depth", rs_gb_o_join.getString("DEPTH"));
  	          	  	   result_o.add(data);
@@ -1540,7 +1589,17 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              result2.add(result_o);
 			
 			}
-		return result2;
+	for(int i =0 ; i<result2.size();i++) {
+			
+				if(result2.get(i).size()>5000) {
+				//	result2.clear();
+				//	result2.add(notReturn);
+					System.out.println("Result2:" + result2);
+					return result2;
+					
+				}
+			}	
+	  return result2;
 		
 		
 	}
@@ -1560,7 +1619,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
              while(rs_pw_a_join.next()) {
 	            	  HashMap<String, String> data = new HashMap<String, String>();
 	            	  data.put("ipr_id", rs_pw_a_join.getString("IPR_ID"));
-	            	  data.put("name", rs_pw_a_join.getString("NAME"));
+	            	  //data.put("name", rs_pw_a_join.getString("NAME"));
 	            	  data.put("parents", rs_pw_a_join.getString("PARENTS"));
 	            	 
 	            	  result.add(data);
@@ -1582,7 +1641,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			 while(rs_pw_a_join.next()) {
 	            	  HashMap<String, String> data = new HashMap<String, String>();
 	            	  data.put("ipr_id", rs_pw_a_join.getString("IPR_ID"));
-	            	  data.put("name", rs_pw_a_join.getString("NAME"));
+	            	  //data.put("name", rs_pw_a_join.getString("NAME"));
 	            	  data.put("parents", rs_pw_a_join.getString("PARENTS"));
 	            	 
 	            	  result_a.add(data);
@@ -1596,7 +1655,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	             while(rs_pw_b_join.next()) {
         	 		  HashMap<String, String> data = new HashMap<String, String>();
    	            	  data.put("ipr_id", rs_pw_b_join.getString("IPR_ID"));
-	            	  data.put("name", rs_pw_b_join.getString("NAME"));
+	            	  //data.put("name", rs_pw_b_join.getString("NAME"));
 	            	  data.put("parents", rs_pw_b_join.getString("PARENTS"));
 	            	  
 	            	  result_b.add(data);
@@ -1610,7 +1669,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		     while(rs_pw_c_join.next()) {
 	            	  	  HashMap<String, String> data = new HashMap<String, String>();
   	            	  data.put("ipr_id", rs_pw_c_join.getString("IPR_ID"));
-	            	  data.put("name", rs_pw_c_join.getString("NAME"));
+	            	  //data.put("name", rs_pw_c_join.getString("NAME"));
 	            	  data.put("parents", rs_pw_c_join.getString("PARENTS"));
 	            	  
 	            	  result_c.add(data);
@@ -1641,7 +1700,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_pw_a_join.next()) {
 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr_id", rs_pw_a_join.getString("IPR_ID"));
-	            	  	   data.put("name", rs_pw_a_join.getString("NAME"));
+	            	  //	   data.put("name", rs_pw_a_join.getString("NAME"));
 	            	  	   data.put("parents", rs_pw_a_join.getString("PARENTS"));
 	            	  	  
 	            	  	   result_a.add(data);
@@ -1655,7 +1714,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_pw_b_join.next()) {
             	  	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("ipr_id", rs_pw_b_join.getString("IPR_ID"));
-            	  	   data.put("name", rs_pw_b_join.getString("NAME"));
+            	  	   //data.put("name", rs_pw_b_join.getString("NAME"));
             	  	   data.put("parents", rs_pw_b_join.getString("PARENTS"));
             	  	  
             	  	   result_b.add(data);
@@ -1669,7 +1728,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_pw_c_join.next()) {
 	            	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("ipr_id", rs_pw_c_join.getString("IPR_ID"));
-            	  	   data.put("name", rs_pw_c_join.getString("NAME"));
+            	  	   //data.put("name", rs_pw_c_join.getString("NAME"));
             	  	   data.put("parents", rs_pw_c_join.getString("PARENTS"));
             	  	 
             	  	   result_c.add(data);
@@ -1683,7 +1742,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_pw_d_join.next()) {
 	            	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("ipr_id", rs_pw_d_join.getString("IPR_ID"));
-            	  	   data.put("name", rs_pw_d_join.getString("NAME"));
+            	  	   //data.put("name", rs_pw_d_join.getString("NAME"));
             	  	   data.put("parents", rs_pw_d_join.getString("PARENTS"));
             	  	   
             	  	   result_d.add(data);
@@ -1697,7 +1756,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_pw_e_join.next()) {
  	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("ipr_id", rs_pw_e_join.getString("IPR_ID"));
-          	  	   data.put("name", rs_pw_e_join.getString("NAME"));
+          	  	   //data.put("name", rs_pw_e_join.getString("NAME"));
           	  	   data.put("parents", rs_pw_e_join.getString("PARENTS"));
           	  	   
           	  	   result_e.add(data);
@@ -1711,7 +1770,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_pw_f_join.next()) {
    	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("ipr_id", rs_pw_f_join.getString("IPR_ID"));
-          	  	   data.put("name", rs_pw_f_join.getString("NAME"));
+         // 	  	   data.put("name", rs_pw_f_join.getString("NAME"));
           	  	   data.put("parents", rs_pw_f_join.getString("PARENTS"));
           	  	  
           	  	   result_f.add(data);
@@ -1725,7 +1784,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_pw_g_join.next()) {
    	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("ipr_id", rs_pw_g_join.getString("IPR_ID"));
-          	  	   data.put("name", rs_pw_g_join.getString("NAME"));
+          	  	  // data.put("name", rs_pw_g_join.getString("NAME"));
           	  	   data.put("parents", rs_pw_g_join.getString("PARENTS"));
           	  	  
           	  	   result_g.add(data);
@@ -1765,7 +1824,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_pw_a_join.next()) {
  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr_id", rs_pw_a_join.getString("IPR_ID"));
- 	            	  	   data.put("name", rs_pw_a_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_pw_a_join.getString("NAME"));
  	            	  	   data.put("parents", rs_pw_a_join.getString("PARENTS"));
  	            	  	   
  	            	  	   result_a.add(data);
@@ -1780,7 +1839,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_pw_b_join.next()) {
 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr_id", rs_pw_b_join.getString("IPR_ID"));
-	            	  	   data.put("name", rs_pw_b_join.getString("NAME"));
+	            	  //	   data.put("name", rs_pw_b_join.getString("NAME"));
 	            	  	   data.put("parents", rs_pw_b_join.getString("PARENTS"));
 	            	  	  
 	            	  	   result_b.add(data);
@@ -1794,7 +1853,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_pw_c_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr_id", rs_pw_c_join.getString("IPR_ID"));
-	            	  	   data.put("name", rs_pw_c_join.getString("NAME"));
+	            	  //	   data.put("name", rs_pw_c_join.getString("NAME"));
 	            	  	   data.put("parents", rs_pw_c_join.getString("PARENTS"));
 	            	  	   
 	            	  	   result_c.add(data);
@@ -1808,7 +1867,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_pw_d_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr_id", rs_pw_d_join.getString("IPR_ID"));
-	            	  	   data.put("name", rs_pw_d_join.getString("NAME"));
+	            	  //	   data.put("name", rs_pw_d_join.getString("NAME"));
 	            	  	   data.put("parents", rs_pw_d_join.getString("PARENTS"));
 	            	  	  
 	            	  	   result_d.add(data);
@@ -1822,7 +1881,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_pw_e_join.next()) {
 	 	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("ipr_id", rs_pw_e_join.getString("IPR_ID"));
-	          	  	   data.put("name", rs_pw_e_join.getString("NAME"));
+	          	  //	   data.put("name", rs_pw_e_join.getString("NAME"));
 	          	  	   data.put("parents", rs_pw_e_join.getString("PARENTS"));
 	          	  	 
 	          	  	   result_e.add(data);
@@ -1836,7 +1895,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_pw_f_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("ipr_id", rs_pw_f_join.getString("IPR_ID"));
-	          	  	   data.put("name", rs_pw_f_join.getString("NAME"));
+	          	  //	   data.put("name", rs_pw_f_join.getString("NAME"));
 	          	  	   data.put("parents", rs_pw_f_join.getString("PARENTS"));
 	          	  	   
 	          	  	   result_f.add(data);
@@ -1850,7 +1909,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_pw_g_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("ipr_id", rs_pw_g_join.getString("IPR_ID"));
-	          	  	   data.put("name", rs_pw_g_join.getString("NAME"));
+	          	  //	   data.put("name", rs_pw_g_join.getString("NAME"));
 	          	  	   data.put("parents", rs_pw_g_join.getString("PARENTS"));
 	          	  	   
 	          	  	   result_g.add(data);
@@ -1863,7 +1922,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
   	              while(rs_pw_h_join.next()) {
   	            	  	   HashMap<String, String> data = new HashMap<String, String>();
   	            	  	   data.put("ipr_id", rs_pw_h_join.getString("IPR_ID"));
-  	            	  	   data.put("name", rs_pw_h_join.getString("NAME"));
+  	            	  //	   data.put("name", rs_pw_h_join.getString("NAME"));
   	            	  	   data.put("parents", rs_pw_h_join.getString("PARENTS"));
   	            	  	  
   	            	  	   result_h.add(data);
@@ -1877,7 +1936,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_pw_i_join.next()) {
  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr_id", rs_pw_i_join.getString("IPR_ID"));
- 	            	  	   data.put("name", rs_pw_i_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_pw_i_join.getString("NAME"));
  	            	  	   data.put("parents", rs_pw_i_join.getString("PARENTS"));
  	            	  	  
  	            	  	   result_i.add(data);
@@ -1891,7 +1950,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_pw_j_join.next()) {
  		            	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr_id", rs_pw_j_join.getString("IPR_ID"));
- 	            	  	   data.put("name", rs_pw_j_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_pw_j_join.getString("NAME"));
  	            	  	   data.put("parents", rs_pw_j_join.getString("PARENTS"));
  	            	  	   
  	            	  	   result_j.add(data);
@@ -1905,7 +1964,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_pw_k_join.next()) {
  		            	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr_id", rs_pw_k_join.getString("IPR_ID"));
- 	            	  	   data.put("name", rs_pw_k_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_pw_k_join.getString("NAME"));
  	            	  	   data.put("parents", rs_pw_k_join.getString("PARENTS"));
  	            	  	   
  	            	  	   result_k.add(data);
@@ -1919,7 +1978,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
   	              while(rs_pw_l_join.next()) {
  	 	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr_id", rs_pw_l_join.getString("IPR_ID"));
- 	          	  	   data.put("name", rs_pw_l_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_pw_l_join.getString("NAME"));
  	          	  	   data.put("parents", rs_pw_l_join.getString("PARENTS"));
  	          	  	   
  	          	  	   result_l.add(data);
@@ -1933,7 +1992,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_pw_m_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr_id", rs_pw_m_join.getString("IPR_ID"));
- 	          	  	   data.put("name", rs_pw_m_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_pw_m_join.getString("NAME"));
  	          	  	   data.put("parents", rs_pw_m_join.getString("PARENTS"));
  	          	  	  
  	          	  	   result_m.add(data);
@@ -1947,7 +2006,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_pw_n_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr_id", rs_pw_n_join.getString("IPR_ID"));
- 	          	  	   data.put("name", rs_pw_n_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_pw_n_join.getString("NAME"));
  	          	  	   data.put("parents", rs_pw_n_join.getString("PARENTS"));
  	          	  	  
  	          	  	   result_n.add(data);
@@ -1960,7 +2019,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_pw_o_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr_id", rs_pw_o_join.getString("IPR_ID"));
- 	          	  	   data.put("name", rs_pw_o_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_pw_o_join.getString("NAME"));
  	          	  	   data.put("parents", rs_pw_o_join.getString("PARENTS"));
  	          	  	  
  	          	  	   result_o.add(data);
@@ -1999,7 +2058,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
              while(rs_dm_a_join.next()) {
 	            	  HashMap<String, String> data = new HashMap<String, String>();
 	            	  data.put("ipr", rs_dm_a_join.getString("IPR"));
-	            	  data.put("name", rs_dm_a_join.getString("NAME"));
+	            	  //data.put("name", rs_dm_a_join.getString("NAME"));
 	            	  data.put("parents", rs_dm_a_join.getString("PARENTS"));
 	            	 
 	            	  result.add(data);
@@ -2021,7 +2080,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			 while(rs_dm_a_join.next()) {
 	            	  HashMap<String, String> data = new HashMap<String, String>();
 	            	  data.put("ipr", rs_dm_a_join.getString("IPR"));
-	            	  data.put("name", rs_dm_a_join.getString("NAME"));
+	            	  //data.put("name", rs_dm_a_join.getString("NAME"));
 	            	  data.put("parents", rs_dm_a_join.getString("PARENTS"));
 	            	 
 	            	  result_a.add(data);
@@ -2035,7 +2094,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	             while(rs_dm_b_join.next()) {
         	 		  HashMap<String, String> data = new HashMap<String, String>();
    	            	  data.put("ipr", rs_dm_b_join.getString("IPR"));
-	            	  data.put("name", rs_dm_b_join.getString("NAME"));
+	            	  //data.put("name", rs_dm_b_join.getString("NAME"));
 	            	  data.put("parents", rs_dm_b_join.getString("PARENTS"));
 	            	 
 	            	  result_b.add(data);
@@ -2049,7 +2108,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 		     while(rs_dm_c_join.next()) {
 	            	  	  HashMap<String, String> data = new HashMap<String, String>();
   	            	  data.put("ipr", rs_dm_c_join.getString("IPR"));
-	            	  data.put("name", rs_dm_c_join.getString("NAME"));
+	            	  //data.put("name", rs_dm_c_join.getString("NAME"));
 	            	  data.put("parents", rs_dm_c_join.getString("PARENTS"));
 	            	 
 	            	  result_c.add(data);
@@ -2080,7 +2139,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_dm_a_join.next()) {
 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr", rs_dm_a_join.getString("IPR"));
-	            	  	   data.put("name", rs_dm_a_join.getString("NAME"));
+	            	  //	   data.put("name", rs_dm_a_join.getString("NAME"));
 	            	  	   data.put("parents", rs_dm_a_join.getString("PARENTS"));
 	            	  	   
 	            	  	   result_a.add(data);
@@ -2094,7 +2153,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_dm_b_join.next()) {
             	  	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("ipr", rs_dm_b_join.getString("IPR"));
-            	  	   data.put("name", rs_dm_b_join.getString("NAME"));
+            	  	   //data.put("name", rs_dm_b_join.getString("NAME"));
             	  	   data.put("parents", rs_dm_b_join.getString("PARENTS"));
             	  	  
             	  	   result_b.add(data);
@@ -2108,7 +2167,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_dm_c_join.next()) {
 	            	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("ipr", rs_dm_c_join.getString("IPR"));
-            	  	   data.put("name", rs_dm_c_join.getString("NAME"));
+            	  	   //data.put("name", rs_dm_c_join.getString("NAME"));
             	  	   data.put("parents", rs_dm_c_join.getString("PARENTS"));
             	  	  
             	  	   result_c.add(data);
@@ -2122,7 +2181,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
               while(rs_dm_d_join.next()) {
 	            	   HashMap<String, String> data = new HashMap<String, String>();
             	  	   data.put("ipr", rs_dm_d_join.getString("IPR"));
-            	  	   data.put("name", rs_dm_d_join.getString("NAME"));
+            	  	   //data.put("name", rs_dm_d_join.getString("NAME"));
             	  	   data.put("parents", rs_dm_d_join.getString("PARENTS"));
             	  	  
             	  	   result_d.add(data);
@@ -2136,7 +2195,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_dm_e_join.next()) {
  	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("ipr", rs_dm_e_join.getString("IPR"));
-          	  	   data.put("name", rs_dm_e_join.getString("NAME"));
+          	  	   //data.put("name", rs_dm_e_join.getString("NAME"));
           	  	   data.put("parents", rs_dm_e_join.getString("PARENTS"));
           	  	  
           	  	   result_e.add(data);
@@ -2150,7 +2209,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_dm_f_join.next()) {
    	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("ipr", rs_dm_f_join.getString("IPR"));
-          	  	   data.put("name", rs_dm_f_join.getString("NAME"));
+          	  	   //data.put("name", rs_dm_f_join.getString("NAME"));
           	  	   data.put("parents", rs_dm_f_join.getString("PARENTS"));
           	  	   
           	  	   result_f.add(data);
@@ -2164,7 +2223,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_dm_g_join.next()) {
    	            	   HashMap<String, String> data = new HashMap<String, String>();
           	  	   data.put("ipr", rs_dm_g_join.getString("IPR"));
-          	  	   data.put("name", rs_dm_g_join.getString("NAME"));
+          	  	  // data.put("name", rs_dm_g_join.getString("NAME"));
           	  	   data.put("parents", rs_dm_g_join.getString("PARENTS"));
           	  	 
           	  	   result_g.add(data);
@@ -2204,7 +2263,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_dm_a_join.next()) {
  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr", rs_dm_a_join.getString("IPR"));
- 	            	  	   data.put("name", rs_dm_a_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_dm_a_join.getString("NAME"));
  	            	  	   data.put("parents", rs_dm_a_join.getString("PARENTS"));
  	            	  	  
  	            	  	   result_a.add(data);
@@ -2218,7 +2277,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_dm_b_join.next()) {
 	            	  	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr", rs_dm_b_join.getString("IPR"));
-	            	  	   data.put("name", rs_dm_b_join.getString("NAME"));
+	            	  //	   data.put("name", rs_dm_b_join.getString("NAME"));
 	            	  	   data.put("parents", rs_dm_b_join.getString("PARENTS"));
 	            	  	  
 	            	  	   result_b.add(data);
@@ -2232,7 +2291,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_dm_c_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr", rs_dm_c_join.getString("IPR"));
-	            	  	   data.put("name", rs_dm_c_join.getString("NAME"));
+	            	  //	   data.put("name", rs_dm_c_join.getString("NAME"));
 	            	  	   data.put("parents", rs_dm_c_join.getString("PARENTS"));
 	            	  	  
 	            	  	   result_c.add(data);
@@ -2246,7 +2305,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	              while(rs_dm_d_join.next()) {
 		            	   HashMap<String, String> data = new HashMap<String, String>();
 	            	  	   data.put("ipr", rs_dm_d_join.getString("IPR"));
-	            	  	   data.put("name", rs_dm_d_join.getString("NAME"));
+	            	  //	   data.put("name", rs_dm_d_join.getString("NAME"));
 	            	  	   data.put("parents", rs_dm_d_join.getString("PARENTS"));
 	            	  	   
 	            	  	   result_d.add(data);
@@ -2260,7 +2319,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_dm_e_join.next()) {
 	 	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("ipr", rs_dm_e_join.getString("IPR"));
-	          	  	   data.put("name", rs_dm_e_join.getString("NAME"));
+	          	  //	   data.put("name", rs_dm_e_join.getString("NAME"));
 	          	  	   data.put("parents", rs_dm_e_join.getString("PARENTS"));
 	          	  	 
 	          	  	   result_e.add(data);
@@ -2274,7 +2333,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_dm_f_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("ipr", rs_dm_f_join.getString("IPR"));
-	          	  	   data.put("name", rs_dm_f_join.getString("NAME"));
+	          	  //	   data.put("name", rs_dm_f_join.getString("NAME"));
 	          	  	   data.put("parents", rs_dm_f_join.getString("PARENTS"));
 	          	  
 	          	  	   result_f.add(data);
@@ -2288,7 +2347,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
    	              while(rs_dm_g_join.next()) {
 	   	            	   HashMap<String, String> data = new HashMap<String, String>();
 	          	  	   data.put("ipr", rs_dm_g_join.getString("IPR"));
-	          	  	   data.put("name", rs_dm_g_join.getString("NAME"));
+	          	  //	   data.put("name", rs_dm_g_join.getString("NAME"));
 	          	  	   data.put("parents", rs_dm_g_join.getString("PARENTS"));
 	          	  	  
 	          	  	   result_g.add(data);
@@ -2301,7 +2360,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
   	              while(rs_dm_h_join.next()) {
   	            	  	   HashMap<String, String> data = new HashMap<String, String>();
   	            	  	   data.put("ipr", rs_dm_h_join.getString("IPR"));
-  	            	  	   data.put("name", rs_dm_h_join.getString("NAME"));
+  	            	  //	   data.put("name", rs_dm_h_join.getString("NAME"));
   	            	  	   data.put("parents", rs_dm_h_join.getString("PARENTS"));
   	            	  	  
   	            	  	   result_h.add(data);
@@ -2315,7 +2374,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_dm_i_join.next()) {
  	            	  	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr", rs_dm_i_join.getString("IPR"));
- 	            	  	   data.put("name", rs_dm_i_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_dm_i_join.getString("NAME"));
  	            	  	   data.put("parents", rs_dm_i_join.getString("PARENTS"));
  	            	  	  
  	            	  	   result_i.add(data);
@@ -2329,7 +2388,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_dm_j_join.next()) {
  		            	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr", rs_dm_j_join.getString("IPR"));
- 	            	  	   data.put("name", rs_dm_j_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_dm_j_join.getString("NAME"));
  	            	  	   data.put("parents", rs_dm_j_join.getString("PARENTS"));
  	            	  	  
  	            	  	   result_j.add(data);
@@ -2343,7 +2402,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
  	              while(rs_dm_k_join.next()) {
  		            	   HashMap<String, String> data = new HashMap<String, String>();
  	            	  	   data.put("ipr", rs_dm_k_join.getString("IPR"));
- 	            	  	   data.put("name", rs_dm_k_join.getString("NAME"));
+ 	            	  //	   data.put("name", rs_dm_k_join.getString("NAME"));
  	            	  	   data.put("parents", rs_dm_k_join.getString("PARENTS"));
  	            	  	  
  	            	  	   result_k.add(data);
@@ -2357,7 +2416,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
   	              while(rs_dm_l_join.next()) {
  	 	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr", rs_dm_l_join.getString("IPR"));
- 	          	  	   data.put("name", rs_dm_l_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_dm_l_join.getString("NAME"));
  	          	  	   data.put("parents", rs_dm_l_join.getString("PARENTS"));
  	          	  	  
  	          	  	   result_l.add(data);
@@ -2371,7 +2430,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_dm_m_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr", rs_dm_m_join.getString("IPR"));
- 	          	  	   data.put("name", rs_dm_m_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_dm_m_join.getString("NAME"));
  	          	  	   data.put("parents", rs_dm_m_join.getString("PARENTS"));
  	          	  	 
  	          	  	   result_m.add(data);
@@ -2385,7 +2444,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_dm_n_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr", rs_dm_n_join.getString("IPR"));
- 	          	  	   data.put("name", rs_dm_n_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_dm_n_join.getString("NAME"));
  	          	  	   data.put("parents", rs_dm_n_join.getString("PARENTS"));
  	          	  	   
  	          	  	   result_n.add(data);
@@ -2398,7 +2457,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              while(rs_dm_o_join.next()) {
  	   	            	   HashMap<String, String> data = new HashMap<String, String>();
  	          	  	   data.put("ipr", rs_dm_o_join.getString("IPR"));
- 	          	  	   data.put("name", rs_dm_o_join.getString("NAME"));
+ 	          	  //	   data.put("name", rs_dm_o_join.getString("NAME"));
  	          	  	   data.put("parents", rs_dm_o_join.getString("PARENTS"));
  	          	  	  
  	          	  	   result_o.add(data);
@@ -3112,12 +3171,20 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			}
 			
 			//21 
-			public CriteriaQuery searchProteinbyPathwayId (int ID) {
+			public CriteriaQuery searchProteinbyPathwayId (int ID, String SPECIES) {
+				 System.out.println("Species method" + SPECIES);
 				CriteriaBuilder builder = em.getCriteriaBuilder();
 				CriteriaQuery<PROTEIN> crit = builder.createQuery(PROTEIN.class);
 				Root<PROTEIN> protein = crit.from(PROTEIN.class);
 				List<Predicate> restrictions = new ArrayList<>();
-				restrictions.add(builder.equal(protein.join("PATHWAY").get("ID"), ID));
+				 Join<PROTEIN, PATHWAY> proteinJoin = protein.join("PATHWAY");
+//				restrictions.add(builder.equal(proteinJoin.get("ID"), ID));
+//				restrictions.add(builder.equal(proteinJoin.get("SPECIES"), SPECIES));
+				  Predicate exp2 = builder.equal(proteinJoin.get("ID"), ID);
+                		  Predicate exp1 = builder.equal(proteinJoin.get("SPECIES"), SPECIES);
+        
+               			  restrictions.add(builder.and(exp1, exp2));
+			    
 				crit.select(protein.get("ACCESSION")).where(restrictions.toArray(new Predicate[]{}));	          
 				return crit;    
 			}
@@ -3150,7 +3217,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 				CriteriaQuery cq = cb.createQuery();
 				Root<PROTEIN> protein = cq.from(PROTEIN.class);
 				List<Predicate> predicates = new ArrayList<Predicate>();
-				predicates.add(cb.like(protein.get("ACCESSION"), "%"+ACCESSION+"%"));
+				predicates.add(cb.equal(protein.get("ACCESSION"), ACCESSION));
 				cq.select(protein.get("ACCESSION")).where(predicates.toArray(new Predicate[]{}));
 				return cq;
 			}
@@ -3338,7 +3405,8 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 				Root<PROTEIN> protein = crit.from(PROTEIN.class);
 				List<Predicate> restrictions = new ArrayList<>();
 				restrictions.add(builder.like(protein.join("protein_crossref").get("TYPE"), "%"+TYPE+"%"));
-				restrictions.add(builder.equal(protein.join("protein_crossref").get("CROSSREF"), CROSSREF));
+				//This line should  change!
+				restrictions.add(builder.like(protein.join("protein_crossref").get("CROSSREF"),CROSSREF));
 				crit.select(protein.get("ACCESSION")).where(restrictions.toArray(new Predicate[]{}));	          
 				return crit;    
 			}
@@ -3358,6 +3426,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 			
 
 }
+
 
 
 

@@ -58,9 +58,10 @@ class ResultPageOneQuery extends Component {
 
     }
     this.options = {
-     defaultSortName: 'taxon_name',  // default sort column name
+     defaultSortName: 'is_reviewed',  // default sort column name
      defaultSortOrder: 'asc'  // default sort order
    };
+
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSelect = this.handleSelect.bind(this);
@@ -69,6 +70,13 @@ class ResultPageOneQuery extends Component {
   }
   componentDidMount(){
     this.getAccession();
+    window.addEventListener("beforeunload", (ev) =>
+    {
+      //console.log("Leaveeeee!!!!");
+        ev.preventDefault();
+        {this.closeConnection()}
+        return ev.returnValue = 'Are you sure you want to close?';
+    });
 
   }
 
@@ -93,27 +101,55 @@ Promise.all([
            //console.log(result5Response.data[0]);
        });
   }
+closeConnection(){
 
+  Promise.all([
+
+       axios.get('http://localhost:9000/protein/connection')
+     ])
+
+
+}
 
   handleChange(value) {
 
     this.setState({selectedValue: value});
+    {this.closeConnection()}
 
 
   }
   handleSelect(key) {
       this.setState({ key: key });
+      {this.closeConnection()}
   }
 
   handleChange2(checked) {
 
     this.setState({ checked });
   }
+  formatLinksProtein(cell,row){
+    row.id= row.accession.replace(/(<([^>]+)>)/ig, '')
+    var linkPathway = "https://reactome.org/content/query?q="+row.id+"&types=Protein"
+    var linkDomain=" http://www.ebi.ac.uk/interpro/protein/"+row.id
+    var linkMolecular=" https://www.ebi.ac.uk/QuickGO/annotations?geneProductId="+row.id+"&aspect=molecular_function"
+    var linkBiological = "https://www.ebi.ac.uk/QuickGO/annotations?geneProductId="+row.id+"&aspect=biological_process"
+    return(
+      <div>
+    <a href={linkPathway} target="_blank" ><button id="pathwayButton">Pathway</button></a>
+    <a href={linkDomain} target="_blank" ><button id="domainButton">Domain</button></a>
+    <a href={linkMolecular} target="_blank" ><button id="molecularButton">Molecular Function </button></a>
+    <a href={linkBiological} target="_blank" ><button id="biologicalButton">Biological Process</button></a>
+    </div>
 
+    );
+
+
+
+  }
   formatNameAccession(cell, row) {
-     return (
 
-         <td dangerouslySetInnerHTML={{__html: row.accession}} />
+     return (
+           <td dangerouslySetInnerHTML={{__html: row.accession}} />
 
      );
      }
@@ -340,6 +376,11 @@ Promise.all([
     }
 const {GM_a,GB_a,PW_a,DM_a,PROT_a, selectedValue,key,checked,preview} =this.state;
 //console.log(GM_a[0]);
+let value_GM =GM_a;
+let value_GB=GB_a;
+let value_PW=PW_a;
+let value_DM=DM_a;
+let value_PROT=PROT_a;
 var tsvData="";
 
 
@@ -512,7 +553,7 @@ var tsvData="";
           tsvData= JSON.parse(JSON.stringify(GM_a));
           for(var i in tsvData){
               tsvData[i].go_id= tsvData[i].go_id.replace(/(<([^>]+)>)/ig, '')
-              tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
+        //      tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
               tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
 
 
@@ -523,7 +564,7 @@ var tsvData="";
         tsvData= JSON.parse(JSON.stringify(GB_a));
         for(var i in tsvData){
             tsvData[i].go_id= tsvData[i].go_id.replace(/(<([^>]+)>)/ig, '')
-            tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
+    //        tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
             tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
 
 
@@ -535,7 +576,7 @@ var tsvData="";
 
         for(var i in tsvData){
             tsvData[i].ipr_id= tsvData[i].ipr_id.replace(/(<([^>]+)>)/ig, '')
-            tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
+    //        tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
             tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
 
 
@@ -548,12 +589,24 @@ var tsvData="";
         //console.log(DM_a);
         for(var i in tsvData){
             tsvData[i].ipr= tsvData[i].ipr.replace(/(<([^>]+)>)/ig, '')
-            tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
+      //      tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
             tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
 
 
           }
 
+      }
+
+      if(selectedValue.length===0){
+        value_GM=[];
+        value_GB=[];
+        value_PW=[];
+        value_DM=[];
+        value_PROT=[];
+
+      }
+      function trClassFormat(rowData, rIndex) {
+        return rIndex % 2 === 0 ? 'tr-function-even-number' : 'tr-function-odd-number';
       }
 
 
@@ -562,7 +615,66 @@ var tsvData="";
         var words = []
         a.replace(/\[(.+?)\]/g, function($0, $1) { words.push($1) })
         words[0]=words[0].replace("[","");
-        words[0]=words[0].replace(new RegExp(',', 'g'), " AND ");
+        words[0]=words[0].replace(new RegExp(',', 'g'), " ");
+        words[0]=words[0].replace(/protein_accession/g,"UniprotKB Accession");
+        words[0]=words[0].replace(/protein_id/g,"UniprotKB Entry Name");
+        words[0]=words[0].replace(/refseq/g,"RefSeq Protein");
+        words[0]=words[0].replace(/refseq_nt/g,"RefSeq Nucleotide");
+        words[0]=words[0].replace(/ensembl/g,"Ensembl Gene");
+        words[0]=words[0].replace(/ensembl_pro/g,"Ensembl Protein");
+        words[0]=words[0].replace(/ensembl_trs/g,"Ensembl Transcript");
+        words[0]=words[0].replace(/disease_identifier/g,"Disease Identifier");
+        words[0]=words[0].replace(/disease_mim/g,"MIM ID");
+        words[0]=words[0].replace(/gene_name/,"Gene Name");
+        words[0]=words[0].replace(/geneid/g,"Gene ID");
+        words[0]=words[0].replace(/gene_name/g,"Gene Name");
+        words[0]=words[0].replace(/embl/g,"EMBL");
+        words[0]=words[0].replace(/embl-cds/g,"EMBL-CDS");
+        words[0]=words[0].replace(/pdb_pdb/g,"PDB");
+        words[0]=words[0].replace(/domain_iprid/g,"InterPro");
+        words[0]=words[0].replace(/domain_name/g,"InterPro Name");
+        words[0]=words[0].replace(/domain_pfam/g,"PFAM ID");
+        words[0]=words[0].replace(/go_id/g,"GO ID");
+        words[0]=words[0].replace(/goterms_name/g,"GO Name");
+        words[0]=words[0].replace(/disease_acronym/g,"Disease Acronym");
+        words[0]=words[0].replace(/pathway_id/g,"Reactome ID");
+        words[0]=words[0].replace(/pathway_name/g,"Reactome Name");
+        words[0]=words[0].replace(/taxon_name/g,"Organism Name");
+        words[0]=words[0].replace(/protein_taxonid/g,"Taxon ID");
+        words[0]=words[0].replace(/allergome/g,"Allergome");
+        words[0]=words[0].replace(/biocyc/g,"BioCyc");
+        words[0]=words[0].replace(/biogrid/g,"BioGrid");
+        words[0]=words[0].replace(/biomuta/g,"BioMuta");
+        words[0]=words[0].replace(/chembl/g,"ChEMBL");
+        words[0]=words[0].replace(/dictybase/g,"dictyBase");
+        words[0]=words[0].replace(/drugbank/g,"DrugBank");
+        words[0]=words[0].replace(/echobase/g,"EchoBASE");
+        words[0]=words[0].replace(/flybase/g,"FlyBase");
+        words[0]=words[0].replace(/genecards/g,"GeneCards");
+        words[0]=words[0].replace(/genedb/g,"GeneDB");
+        words[0]=words[0].replace(/genereviews/g,"GeneReviews");
+        words[0]=words[0].replace(/hgnc/g,"HGNC");
+        words[0]=words[0].replace(/kegg/g,"KEGG");
+        words[0]=words[0].replace(/orthodb/g,"OrthoDB");
+        words[0]=words[0].replace(/peroxibase/g,"PeroxiBase");
+        words[0]=words[0].replace(/pombase/g,"PomBase");
+        words[0]=words[0].replace(/protein_name/g,"Protein Name");
+        words[0]=words[0].replace(/publication_pmid/g,"PMID");
+        words[0]=words[0].replace(/publication_title/g,"Publication Title");
+        words[0]=words[0].replace(/rebase/g,"REBASE");
+        words[0]=words[0].replace(/rgd/g,"RGD");
+        words[0]=words[0].replace(/sgd/g,"SGD");
+        words[0]=words[0].replace(/string/g,"STRING");
+        words[0]=words[0].replace(/unigene/g,"UniGene");
+        words[0]=words[0].replace(/uniparc/g,"UniParc");
+        words[0]=words[0].replace(/unipathway/g,"UniPathway");
+        words[0]=words[0].replace(/uniref100/g,"UniRef100");
+        words[0]=words[0].replace(/uniref50/g,"UniRef50");
+        words[0]=words[0].replace(/uniref90/g,"UniRef90");
+        words[0]=words[0].replace(/vectorbase/g,"VectorBase");
+        words[0]=words[0].replace(/wormbase/g,"WormBase");
+        words[0]=words[0].replace(/xenbase/g,"Xenbase");
+
         if(words[0]==="refid"){
           words[0]=words[0].replace("refid","RefSeq ID");
         }
@@ -639,57 +751,54 @@ var tsvData="";
 
         <div className="left">
             <div className="button_top">
-              <Link to="/"><button className="add_query">New Query </button></Link>
+              <Link to="/"><button className="add_query" onClick={this.closeConnection}>New Query </button></Link>
               <CSVLink data={tsvData} filename={"prosetcomp.tsv"} separator={"\t"} ><button className="exportTSV">Export TSV</button></CSVLink>
 
             </div>
-              <Tabs defaultActiveKey={1} id="uncontrolled-tab-example" onSelect={this.handleSelect}>
+              <Tabs className="myClass" defaultActiveKey={1} id="uncontrolled-tab-example" onSelect={this.handleSelect}>
 
                 <Tab eventKey={1} title="Protein">
-                    <BootstrapTable   data={ PROT_a } options={this.options}  pagination  >
-                        <TableHeaderColumn  dataField='accession' dataFormat={ this.formatNameAccession } isKey dataSort>ACCESSION</TableHeaderColumn>
-                        <TableHeaderColumn width={'40%'} dataField='name' dataFormat={ this.formatNameName } dataSort>NAME</TableHeaderColumn>
-                        <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center'>TAXON ID</TableHeaderColumn>
-                        <TableHeaderColumn  dataField='taxon_name'dataAlign='center' dataSort>TAXON NAME</TableHeaderColumn>
-                        <TableHeaderColumn dataField='is_reviewed'  dataAlign='center'>IS REVIEWED</TableHeaderColumn>
+                    <BootstrapTable   data={ value_PROT } trClassName={ trClassFormat } options={this.options}  pagination  >
+                        <TableHeaderColumn width={'15%'} dataField='accession' dataFormat={ this.formatNameAccession } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>ACCESSION</TableHeaderColumn>
+                        <TableHeaderColumn dataField='name' dataFormat={ this.formatNameName } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>NAME</TableHeaderColumn>
+                        <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } }>TAXON ID</TableHeaderColumn>
+                        <TableHeaderColumn width={'20%'} dataField='taxon_name'dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>TAXON NAME</TableHeaderColumn>
+                        <TableHeaderColumn width={'15%'} dataField='is_reviewed'  dataAlign='center' dataSort >IS REVIEWED</TableHeaderColumn>
+                        <TableHeaderColumn  dataAlign='center' dataFormat={this.formatLinksProtein}>LINKS</TableHeaderColumn>
                     </BootstrapTable>
 
                 </Tab>
 
                 <Tab eventKey={2} title="Molecular Function">
-                  <BootstrapTable   data={ GM_a }  pagination >
-                      <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id }  isKey dataSort >GO TERM ID </TableHeaderColumn>
-                      <TableHeaderColumn dataField='name'>NAME</TableHeaderColumn>
-                      <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents }>PARENTS</TableHeaderColumn>
-                      <TableHeaderColumn width={'10%'} dataField='depth'dataAlign='center' >DEPTH</TableHeaderColumn>
+                  <BootstrapTable   data={ value_GM } trClassName={ trClassFormat } pagination >
+                      <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort >GO TERM ID </TableHeaderColumn>
+                      <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
+                      <TableHeaderColumn width={'15%'} dataField='depth'dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
                   </BootstrapTable>
                 </Tab>
 
 
 
                   <Tab eventKey={3} title="Biological Process">
-                      <BootstrapTable   data={ GB_a }  pagination >
-                          <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } isKey dataSort>GO TERM ID</TableHeaderColumn>
-                          <TableHeaderColumn dataField='name'>NAME</TableHeaderColumn>
-                          <TableHeaderColumn dataField='parents' dataFormat={this.formatNameParents}>PARENTS</TableHeaderColumn>
-                          <TableHeaderColumn width={'10%'} dataField='depth' >DEPTH</TableHeaderColumn>
+                      <BootstrapTable   data={ value_GB } trClassName={ trClassFormat } pagination >
+                          <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>GO TERM ID</TableHeaderColumn>
+                          <TableHeaderColumn dataField='parents' dataFormat={this.formatNameParents} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
+                          <TableHeaderColumn width={'15%'} dataField='depth' dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
                       </BootstrapTable>
                        </Tab>
 
                  <Tab eventKey={4} title="Pathway">
-                     <BootstrapTable   data={ PW_a }  pagination >
-                         <TableHeaderColumn dataField='ipr_id' dataFormat={ this.formatNameIpr_Id } isKey dataSort>REACTOME ID</TableHeaderColumn>
-                         <TableHeaderColumn dataField='name'>NAME</TableHeaderColumn>
-                         <TableHeaderColumn dataField='parents' dataFormat={this.formatNameParentsForPathway}>PARENTS</TableHeaderColumn>
+                     <BootstrapTable   data={ value_PW } trClassName={ trClassFormat } pagination >
+                         <TableHeaderColumn dataField='ipr_id' dataFormat={ this.formatNameIpr_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>REACTOME ID</TableHeaderColumn>
+                       <TableHeaderColumn dataField='parents' dataFormat={this.formatNameParentsForPathway} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } }>PARENTS</TableHeaderColumn>
                      </BootstrapTable>
 
 
                   </Tab>
                   <Tab eventKey={5} title="Domain">
-                  <BootstrapTable   data={ DM_a }  pagination >
-                      <TableHeaderColumn dataField='ipr' dataFormat={ this.formatNameIpr } isKey dataSort>IPR</TableHeaderColumn>
-                      <TableHeaderColumn dataField='name'>NAME</TableHeaderColumn>
-                      <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents }>PARENTS</TableHeaderColumn>
+                  <BootstrapTable   data={ value_DM }  trClassName={ trClassFormat } pagination >
+                      <TableHeaderColumn dataField='ipr' dataFormat={ this.formatNameIpr } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>IPR</TableHeaderColumn>
+                      <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } }>PARENTS</TableHeaderColumn>
 
                   </BootstrapTable>
 

@@ -62,6 +62,7 @@ public class PROTEIN_CONTROLLER {
 
 		//Parse JSON OBJECT
 		connection=datasource.getConnection();
+//		System.out.println("Connection1!!!" + connection);
 		ObjectMapper objectMapper = new ObjectMapper();
 		JsonNode jsonNode = objectMapper.readTree(json);
 		JsonNode body=jsonNode.get("body");
@@ -103,19 +104,30 @@ file_list_collect.add(file_name);
 			  JsonNode resultNode2=resultNode.get(i).get("rules");
 			  List<String> key_value = new ArrayList<>();
 			  List<String> key_value_combinator = new ArrayList<>();
-                        
+			  List<String> key_value_combinator_preview = new ArrayList<>();
+                                                
 			  for(int j=0; j<resultNode2.size();j++) {
 				  String name = resultNode2.get(j).get("field").asText();
 				  String value=resultNode2.get(j).get("value").asText();
 				  key_value.add(name+"="+value);
-				  String combinator=resultNode2.get(j).get("operator").asText();
-			    key_value_combinator.add(combinator);
+	        		  String combinator=resultNode2.get(j).get("operator").asText();
+				 // String combinator_preview=resultNode2.get(j).get("operator").asText();
+				 // System.out.println(combinator_preview);
+			          if(j==0) {
+                                	key_value_combinator_preview.add(name+"="+value);
+                                    
+                                   }
+                                   else {
+                                 	key_value_combinator_preview.add(combinator + " " + name+"="+value+ " " );
+                                    
+                                   }	
+				  key_value_combinator.add(combinator);
 			  }
 			  key_value_list.add(key_value);
 			  key_value_combinator_list.add(key_value_combinator);
-        key_value_preview.add(key_value);
-				key_value_preview.add(key_value_combinator);
-		
+			  key_value_preview.add(key_value_combinator_preview);		         
+// key_value_preview.add(key_value);
+//			  key_value_preview.add(key_value_combinator);
 		  }
 		
 		for(int i=0;i<file_list.size();i++) {
@@ -124,8 +136,10 @@ file_list_collect.add(file_name);
 		 }
 
 		protein_repo.iterateJsonObject(key_value_list,id_json,connection,key_value_combinator_list);		
-         
-            return ""+key_value_preview;
+		String a = protein_repo.extendedQueryNumber();
+//		System.out.println(a);
+
+                return a+key_value_preview;
 }
 
 	
@@ -169,8 +183,16 @@ file_list_collect.add(file_name);
 	@GetMapping(path="/prot")
 	@ResponseBody
 	public List<List<HashMap<String,String>>> returnPROT() throws SQLException, InterruptedException{
-
-		return  protein_repo.call_PROT_StoredProcedure(connection);
+               return  protein_repo.call_PROT_StoredProcedure(connection);
 	}
+	@CrossOrigin(origins = "http://localhost:3000")
+	@GetMapping(path="/connection")
+	@ResponseBody
+	public void closeConnection() throws SQLException, InterruptedException{
+		connection.close();
+		System.out.println("Connection2!!!!!" + connection);
+	}
+      
 }
+
 

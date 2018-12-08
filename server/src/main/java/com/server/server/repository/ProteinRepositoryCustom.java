@@ -13,6 +13,6 @@ public interface ProteinRepositoryCustom {
 	List<List<HashMap<String,String>>> call_PW_StoredProcedure(Connection connection) throws SQLException;
 	List<List<HashMap<String,String>>> call_DM_StoredProcedure(Connection connection) throws SQLException;
 	List<List<HashMap<String,String>>> call_PROT_StoredProcedure(Connection connection) throws SQLException;	
-
+	String extendedQueryNumber();
 }
 

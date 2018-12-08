@@ -1,0 +1,7 @@
+
+.fast-animation .CircularProgressbar-path {
+  transition: stroke-dashoffset 0.2s ease 0s;
+}
+.warningText{
+ font-size: 24px;
+}

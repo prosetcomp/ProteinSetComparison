@@ -5,12 +5,53 @@
   text-overflow: ellipsis;
 
 }
+.tr-function-even-number{
+  background-color: #cccccc;
+}
+
 .test-venn-diagram{
 width: 100%;
 height: 100%;
 
 
 }
+
+#pathwayButton,#domainButton,#molecularButton,#biologicalButton{
+  display: inline-block;
+  margin-top: 0.3em;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: #fff;
+  background-color: #337ab7;
+  border-color: #337ab7;
+  width: 130px;
+  margin-right: 5px;
+
+}
+.myClass ul > li > a:hover {
+    background-color: #b8e0b8;
+}
+
+/* Active tab */
+.myClass ul > li.active > a,
+.myClass ul > li.active > a:hover,
+.myClass ul > li.active > a:focus {
+    background-color: #5cb85c;
+    color: white;
+}
+
 
 .ResultPage{
   display: flex;

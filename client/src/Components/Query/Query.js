@@ -6,6 +6,9 @@ import Loading from  '../ResultPage/Loading';
 import { Redirect } from 'react-router';
 import './query-builder.css';
 import Select from 'react-select';
+import ExtendedQuery from './ExtendedQuery';
+import PopupPage from './PopupPage';
+
 
 
 var nameOfFiles2=[] ;
@@ -60,7 +63,7 @@ const fields = [
             {label: 'GO ID (Molecular Function)', name: 'go_id'},
             {label: 'GO Name', name: 'goterms_name'},
             {label: 'Disease Acronym', name: 'disease_acronym'},
-            {label: 'Disease Identifier', name: 'disease_identifier'},
+            {label: 'Disease Name', name: 'disease_identifier'},
             {label: 'MIM ID', name: 'disease_mim'},
             {label: 'Reactome ID', name: 'pathway_id'},
             {label: 'Reactome Name', name: 'pathway_name'},
@@ -132,7 +135,7 @@ const labels = {
       title: "Addcriteria"
   },
   addGroup: {
-      label: "ADD QUERY",
+      label: "ADD SET",
       title: "Addquery"
   },
   combinators: {
@@ -224,7 +227,10 @@ const handleFileChosen = (file) =>{
 
   }
 function controlQueryAndFileSize(){
+  console.log(filesize)
+    console.log(query1.rules.length+filesize)
   if(query1.rules.length+filesize>=4){
+
     disableBtn();
     disableAddFileButton();
 
@@ -287,6 +293,9 @@ delete(e){
   array.splice(index, 1);
   this.setState({ documents:array });
   filesize=this.state.documents.length-1;
+  if(filesize===-1){
+    filesize=0;
+  }
   controlQueryAndFileSize();
   if(this.state.documents.length<=4){
     enableAddFileButton();
@@ -328,6 +337,7 @@ this.setState({loading: true})
             lastContentArray=[];
             nameOfFiles2=[];
             filesize=0;
+            console.log(results.data.indexOf("More than 5000 query"));
 
 
         }).catch(err => {
@@ -350,7 +360,12 @@ this.setState({loading: true})
 
 
     const {control,loading, query,preview,optionsState,optionsStateFile,selectedOption} = this.state;
+    console.log(preview);
+    if(preview.indexOf("More than 5000 query")>-1){
+      //console.log("It's more than 5000");
+      return (<Redirect to={{ pathname: "/warning"}} />)
 
+    }
    if(control!==200 && loading===true ){
     return <Loading/>
     }
@@ -371,13 +386,11 @@ this.setState({loading: true})
     return <Element key={ index } index={ index } />
   });
    return (
-      <div className="query2">
+      <div className="query2" >
 
       <div className="title">
           <h1>Protein Set Comparison Tool</h1>
-
       </div>
-
       <div className="query">
 
 

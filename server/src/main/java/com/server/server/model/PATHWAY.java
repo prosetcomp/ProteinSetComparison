@@ -26,7 +26,7 @@ public class PATHWAY implements Serializable {
 	
 	@Column(name="NAME")
 	private String NAME;
-	
+
 	@Column(name="SPECIES")
 	private String SPECIES;
 
