@@ -1,0 +1,144 @@
+#!/bin/bash
+
+cut -f1 ../normalized_data/protein.tsv | sort -u > file1 
+
+touch ./qualitycheck2/primary2secondary-protein.log
+
+cut -f1 ../normalized_data/primary2secondary.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/primary2secondary-protein.log
+
+touch ./qualitycheck2/protein_pathway-protein.log
+
+cut -f1 ../normalized_data/protein_pathway.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_pathway-protein.log
+
+touch ./qualitycheck2/protein_gene-protein.log
+
+cut -f1 ../normalized_data/protein_gene.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_gene-protein.log
+
+touch ./qualitycheck2/protein_crossref-protein.log
+
+cut -f1 ../normalized_data/protein_crossref2.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_crossref-protein.log
+
+touch ./qualitycheck2/protein_ontology-protein.log
+
+cut -f1 ../normalized_data/protein_ontology2.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_ontology-protein.log
+
+touch ./qualitycheck2/protein_pdb-protein.log
+
+cut -f1 ../normalized_data/protein_pdb2.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_pdb-protein.log
+
+touch ./qualitycheck2/protein_disease-protein.log
+
+cut -f1 ../normalized_data/protein_disease.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_disease-protein.log
+
+touch ./qualitycheck2/protein_publication-protein.log
+
+cut -f1 ../normalized_data/protein_publication2.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_publication-protein.log
+
+
+cut -f1 ../normalized_data/taxon.tsv | sort -u > file2 
+
+touch ./qualitycheck2/taxon_hierarchy-taxon-child.log
+touch ./qualitycheck2/taxon_hierarchy-taxon-parent.log
+
+cut -f1 ../normalized_data/taxon_hierarchy.tsv | sort -u > file1
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/taxon_hierarchy-taxon-child.log
+
+cut -f2 ../normalized_data/taxon_hierarchy.tsv | sort -u > file1
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/taxon_hierarchy-taxon-parent.log
+
+
+cut -f1 ../normalized_data/pathway.tsv | sort -u > file1
+
+touch ./qualitycheck2/protein_pathway-pathway.log
+touch ./qualitycheck2/pathway_hierarchy-pathway-parent.log
+touch ./qualitycheck2/pathway_hierarchy-pathway-child.log
+
+cut -f2 ../normalized_data/protein_pathway.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/protein_pathway-pathway.log
+
+cut -f1 ../normalized_data/pathway_hierarchy.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/pathway_hierarchy-pathway-parent.log
+
+cut -f2 ../normalized_data/pathway_hierarchy.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file1 file2 > ./qualitycheck2/pathway_hierarchy-pathway-child.log
+
+
+touch ./qualitycheck2/protein_publication-publication.log
+
+cut -f2 ../normalized_data/protein_publication2.tsv | sort -u > file1
+
+cut -f1 ../normalized_data/publications.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/protein_publication-publication.log
+
+touch ./qualitycheck2/pmid2author-publication.log
+
+cut -f1 ../normalized_data/pmid2author2.tsv | sort -u > file1
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/pmid2author-publication.log
+
+
+
+cut -f2 ../normalized_data/protein_disease.tsv | sort -u > file1
+
+touch ./qualitycheck2/protein_disease-disease.log
+
+cut -f2 ../normalized_data/disease.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/protein_disease-disease.log
+
+
+
+cut -f2 ../normalized_data/protein_ontology2.tsv | sort -u > file1
+
+touch ./qualitycheck2/protein_ontology-goterms.log
+
+cut -f1 ../normalized_data/go_terms.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/protein_ontology-goterms.log
+
+touch ./qualitycheck2/term_relations-go_terms-termid.log
+touch ./qualitycheck2/term_relations-go_terms-isa.log
+
+cut -f1 ../normalized_data/term_relations.tsv | sort -u > file1
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/term_relations-go_terms-termid.log
+
+cut -f2 ../normalized_data/term_relations.tsv | sort -u > file1
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/term_relations-go_terms-isa.log
+
+
+touch ./qualitycheck2/go_terms-namespace.log
+
+cut -f3 ../normalized_data/go_terms.tsv | sort -u > file1
+
+cut -f1 ../normalized_data/namespace.tsv | sort -u > file2
+
+awk 'FNR==NR {a[$0]++; next} !a[$0]' file2 file1 > ./qualitycheck2/go_terms-namespace.log
+
+
+
+
+
