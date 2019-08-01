@@ -17,6 +17,8 @@ import Switch from "react-switch";
 import ReactTextCollapse from 'react-text-collapse';
 import {BootstrapTable, TableHeaderColumn,ExportCSVButton } from 'react-bootstrap-table';
 import {CSVLink} from 'react-csv';
+import Modal from 'react-responsive-modal';
+import Cookies from 'js-cookie';
 
 
 
@@ -46,7 +48,10 @@ const TEXT_COLLAPSE_OPTIONS2 = {
   }
 }
 
-
+var resultMolecular;
+var resultBiological;
+var resultPathway;
+var resultDomain;
 
 class ResultPageTwoQuery extends Component {
   constructor(props) {
@@ -72,6 +77,12 @@ class ResultPageTwoQuery extends Component {
     checked: true,
     isChecked: true,
     preview:this.props.location.state,
+    open: false,
+    mfaccessionresult:[],
+    bpaccessionresult:[],
+    pwaccessionresult:[],
+    dmaccessionresult:[]
+
   }
     this.options = {
      defaultSortName: 'is_reviewed',  // default sort column name
@@ -83,6 +94,11 @@ class ResultPageTwoQuery extends Component {
       this.handleChange2 = this.handleChange2.bind(this);
       this.handleVennChange = this.handleVennChange.bind(this);
       this.handleChecked = this.handleChecked.bind(this);
+      this.makeRequestMolecular = this.makeRequestMolecular.bind(this);
+      this.makeRequestBiological = this.makeRequestBiological.bind(this);
+      this.makeRequestPathway = this.makeRequestPathway.bind(this);
+      this.makeRequestDomain = this.makeRequestDomain.bind(this);
+      this.openModal = this.openModal.bind(this);
 
 
 
@@ -96,7 +112,7 @@ class ResultPageTwoQuery extends Component {
     {
     //  console.log("Leaveeeee!!!!");
         ev.preventDefault();
-        {this.closeConnection()}
+    //    {this.closeConnection()}
         return ev.returnValue = 'Are you sure you want to close?';
     });
 }
@@ -128,6 +144,8 @@ class ResultPageTwoQuery extends Component {
 
 
 }
+
+
 closeConnection(){
 
   Promise.all([
@@ -140,13 +158,14 @@ closeConnection(){
 
 
 
+
 handleChange(value) {
   this.setState({selectedValue: value});
-    {this.closeConnection()}
+  //  {this.closeConnection()}
 }
 handleSelect(key) {
     this.setState({ key: key });
-    {this.closeConnection()}
+  //  {this.closeConnection()}
 }
 handleChange2(checked) {
 
@@ -163,6 +182,8 @@ handleChecked (event) {
 
 
  }
+
+
  formatLinksProtein(cell,row){
    row.id= row.accession.replace(/(<([^>]+)>)/ig, '')
    var linkPathway = "https://reactome.org/content/query?q="+row.id+"&types=Protein"
@@ -182,6 +203,178 @@ handleChecked (event) {
 
 
  }
+
+ //Buttons for related proteins
+
+  //Molecular Function
+ buttonFunctionMolecular(cell, row) {
+       return <label>
+                <button type="button"
+                       id="validatebutton"
+                        onClick={() => {this._validateFunctionMolecular(row)}}
+                        className="bbtn btn-primary btn-sm">
+                         Show
+                </button>
+              </label>
+    }
+
+  _validateFunctionMolecular(row) {
+     const regex = /(<([^>]+)>)/ig;
+     var numberPattern = /(\d+){5,}/g;
+     const result0 = row.go_id.replace(regex, '');
+     resultMolecular = result0.match( numberPattern );
+     {this.makeRequestMolecular()}
+     //{this.openModal()}
+  }
+
+  //Biological Process
+ buttonFunctionBiological(cell, row) {
+       return <label>
+                <button type="button"
+                       id="validatebutton"
+                        onClick={() => {this._validateFunctionBiological(row)}}
+                        className="bbtn btn-primary btn-sm">
+                         Show
+                </button>
+              </label>
+ }
+
+ _validateFunctionBiological(row) {
+    const regex = /(<([^>]+)>)/ig;
+    var numberPattern = /(\d+){5,}/g;
+    const result0 = row.go_id.replace(regex, '');
+    resultBiological = result0.match( numberPattern );
+
+   {this.makeRequestBiological()}
+    //{this.openModal()}
+ }
+
+
+//Pathway
+ buttonFunctionPathway(cell, row) {
+      return <label>
+                <button type="button"
+                        id="validatebutton"
+                        onClick={() => {this._validateFunctionPathway(row)}}
+                        className="bbtn btn-primary btn-sm">
+                          Show
+                </button>
+             </label>
+ }
+
+_validateFunctionPathway(row) {
+   const regex = /(<([^>]+)>)/ig;
+   var numberPattern = /(\d+){5,}/g;
+   const result0 = row.ipr_id.replace(regex, '');
+   resultPathway = result0.match( numberPattern );
+  {this.makeRequestPathway()}
+   //{this.openModal()}
+ }
+
+
+ //Domain
+  buttonFunctionDomain(cell, row) {
+        return <label>
+                 <button type="button"
+                        id="validatebutton"
+                         onClick={() => {this._validateFunctionDomain(row)}}
+                         className="bbtn btn-primary btn-sm">
+                          Show
+                 </button>
+               </label>
+  }
+
+  _validateFunctionDomain(row) {
+     const regex = /(<([^>]+)>)/ig;
+     var numberPattern = /(\d+){5,}/g;
+     const result0 = row.ipr.replace(regex, '');
+     resultDomain = result0.match( numberPattern );
+    {this.makeRequestDomain()}
+     //{this.openModal()}
+  }
+
+
+//Requests for related proteins
+
+//Molecular
+ makeRequestMolecular(){
+ let cookie_value =  Cookies.get('id');
+ axios.defaults.headers.common['Authorization'] = cookie_value;
+ axios.post('http://localhost:9000/protein/mfaccession', {
+       region:this.state.selectedValue,
+       body:  JSON.parse(JSON.stringify(resultMolecular))
+ })
+ .then((results) => {
+   this.setState({mfaccessionresult:results.data[0]});
+   cookie_value=results.config.headers.Authorization;
+ }).catch(err => {
+
+ });
+ {this.openModal()}
+ }
+ //Biological
+ makeRequestBiological(){
+ let cookie_value =  Cookies.get('id');
+ axios.defaults.headers.common['Authorization'] = cookie_value;
+ axios.post('http://localhost:9000/protein/bpaccession', {
+       region:this.state.selectedValue,
+       body:  JSON.parse(JSON.stringify(resultBiological))
+ })
+ .then((results) => {
+   this.setState({bpaccessionresult:results.data[0]});
+   cookie_value=results.config.headers.Authorization;
+ }).catch(err => {
+
+ });
+ {this.openModal()}
+ }
+
+//Pathway
+ makeRequestPathway(){
+ let cookie_value =  Cookies.get('id');
+ axios.defaults.headers.common['Authorization'] = cookie_value;
+ axios.post('http://localhost:9000/protein/pwaccession', {
+         region:this.state.selectedValue,
+         body:  JSON.parse(JSON.stringify(resultPathway))
+
+
+       })
+         .then((results) => {
+           this.setState({pwaccessionresult:results.data[0]});
+           cookie_value=results.config.headers.Authorization;
+       }).catch(err => {
+
+     });
+   {this.openModal()}
+ }
+//Domain
+ makeRequestDomain(){
+ let cookie_value =  Cookies.get('id');
+ axios.defaults.headers.common['Authorization'] = cookie_value;
+axios.post('http://localhost:9000/protein/dmaccession', {
+       region:this.state.selectedValue,
+       body:  JSON.parse(JSON.stringify(resultDomain))
+ })
+ .then((results) => {
+   this.setState({dmaccessionresult:results.data[0]});
+   cookie_value=results.config.headers.Authorization;
+ }).catch(err => {
+
+ });
+ {this.openModal()}
+ }
+
+
+openModal(){
+ this.setState({ open: true });
+
+}
+
+onCloseModal = () => {
+  this.setState({ open: false });
+};
+
+
  formatNameAccession(cell, row) {
     // get name by row.name
     // get description by row.description
@@ -291,6 +484,8 @@ handleChecked (event) {
          </div>
       );
       }
+
+
 
 
 
@@ -419,16 +614,36 @@ div.selectAll("g")
 
 
 
-
    const {GM_a,GM_b,GM_c ,GB_a,GB_b,GB_c ,PW_a,PW_b,PW_c ,DM_a,DM_b,DM_c ,PROT_a,PROT_b,PROT_c, selectedValue,key} =this.state;
    const {checked,preview} = this.state;
 
-      let value_GM =GM_c;
-      let value_GB=GB_c;
-      let value_PW=PW_c;
-      let value_DM=DM_c;
-      let value_PROT=PROT_c;
-      var tsvData="";
+  const {open,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult } = this.state;
+
+let value_GM =GM_c;
+let value_GB=GB_c;
+let value_PW=PW_c;
+let value_DM=DM_c;
+let value_PROT=PROT_c;
+var tsvData="";
+
+
+
+let data ;
+    if(key==2){
+      data = mfaccessionresult;
+    }
+    else if(key==3){
+      data = bpaccessionresult;
+    }
+    else if(key==4){
+      data = pwaccessionresult;
+
+    }
+
+    else if(key==5){
+      data = dmaccessionresult;
+    }
+
     function exportTsv(){
         if(key===1){
           tsvData= JSON.parse(JSON.stringify(value_PROT));
@@ -439,10 +654,7 @@ div.selectAll("g")
 
 
             }
-
-
-
-        }
+    }
         else if(key===2){
             tsvData= JSON.parse(JSON.stringify(value_GM));
             for(var i in tsvData){
@@ -895,7 +1107,7 @@ let checkBoxComponent="";
         <div className="left">
 
         <div className="button_top">
-          <Link to="/"><button className="add_query" onClick={this.closeConnection}>New Query </button></Link>
+          <Link to="/"><button className="add_query" onClick={this.closeConnection} >New Query </button></Link>
           <CSVLink data={tsvData} filename={"prosetcomp.tsv"} separator={"\t"} ><button className="exportTSV">Export TSV</button></CSVLink>
 
         </div>
@@ -915,10 +1127,13 @@ let checkBoxComponent="";
 
 
               <Tab eventKey={2} title="Molecular Function">
-                <BootstrapTable   data={ value_GM} trClassName={ trClassFormat }  pagination  >
+                <BootstrapTable   data={ value_GM} trClassName={ trClassFormat } striped
+                expandableRow={ this.isExpandableRow }
+                expandComponent={ this.expandComponent } pagination  >
                     <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>GO TERM ID</TableHeaderColumn>
                     <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
                     <TableHeaderColumn width={'15%'} dataField='depth' dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
+                    <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionMolecular.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
                 </BootstrapTable>
               </Tab>
 
@@ -926,10 +1141,11 @@ let checkBoxComponent="";
 
                 <Tab eventKey={3} title="Biological Process">
                     <BootstrapTable   data={ value_GB } trClassName={ trClassFormat } pagination >
-                        <TableHeaderColumn width={'40%'} dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>GO TERM ID</TableHeaderColumn>
+                        <TableHeaderColumn  dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>GO TERM ID</TableHeaderColumn>
 
-                        <TableHeaderColumn width={'40%'} dataField='parents' dataFormat={this.formatNameParents} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
-                        <TableHeaderColumn width={'15%'} dataField='depth' dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
+                        <TableHeaderColumn  dataField='parents' dataFormat={this.formatNameParents} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
+                        <TableHeaderColumn dataField='depth' dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
+                        <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionBiological.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
                     </BootstrapTable>
                    </Tab>
 
@@ -938,6 +1154,7 @@ let checkBoxComponent="";
                        <TableHeaderColumn dataField='ipr_id' dataFormat={ this.formatNameIpr_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } }  isKey dataSort>REACTOME ID</TableHeaderColumn>
 
                        <TableHeaderColumn dataField='parents' dataFormat={this.formatNameParentsForPathway} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } >PARENTS</TableHeaderColumn>
+                       <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionPathway.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
                    </BootstrapTable>
 
                 </Tab>
@@ -946,11 +1163,25 @@ let checkBoxComponent="";
                     <TableHeaderColumn dataField='ipr' dataFormat={ this.formatNameIpr } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>IPR</TableHeaderColumn>
 
                     <TableHeaderColumn dataField='parents'  filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataFormat={ this.formatNameParents }>PARENTS</TableHeaderColumn>
+                    <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDomain.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
 
                 </BootstrapTable>
 
                 </Tab>
               </Tabs>
+
+              <Modal open={open} onClose={this.onCloseModal}>
+                <h2>RELATED PROTEINS</h2>
+                <BootstrapTable  ref='table'  data={data}  trClassName={ trClassFormat } options={this.options}   pagination  >
+                <TableHeaderColumn ref='nameCol' width={'15%'} dataField='accession' dataFormat={ this.formatNameAccession } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>ACCESSION</TableHeaderColumn>
+                <TableHeaderColumn dataField='name' dataFormat={ this.formatNameName } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>NAME</TableHeaderColumn>
+                <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } }>TAXON ID</TableHeaderColumn>
+                <TableHeaderColumn width={'20%'} dataField='taxon_name'dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>TAXON NAME</TableHeaderColumn>
+                <TableHeaderColumn width={'15%'} dataField='is_reviewed'  dataAlign='center' dataSort >IS REVIEWED</TableHeaderColumn>
+                <TableHeaderColumn  dataAlign='center' dataFormat={this.formatLinksProtein}>LINKS</TableHeaderColumn>
+                  </BootstrapTable>
+
+              </Modal>
 
 
                   <button className="leftbutton"></button>

@@ -8,6 +8,9 @@ import './query-builder.css';
 import Select from 'react-select';
 import ExtendedQuery from './ExtendedQuery';
 import PopupPage from './PopupPage';
+import Cookies from 'js-cookie';
+  var uniqid = require('uniqid');
+
 
 
 
@@ -20,9 +23,7 @@ class DocumentInput extends React.Component {
    handleChange = (selectedOption) => {
     this.setState({ selectedOption });
     nameOfFiles2 .push(selectedOption);
-
-
-  }
+   }
   render() {
     const {selectedOption}=this.state;
 
@@ -227,8 +228,7 @@ const handleFileChosen = (file) =>{
 
   }
 function controlQueryAndFileSize(){
-  console.log(filesize)
-    console.log(query1.rules.length+filesize)
+
   if(query1.rules.length+filesize>=4){
 
     disableBtn();
@@ -260,7 +260,7 @@ function logQuery(query) {
 }
 
 
-
+var id = uniqid();
 class Query extends Component {
 
   constructor(props){
@@ -271,7 +271,7 @@ class Query extends Component {
       this.changeSelectOptionFile = this.changeSelectOptionFile.bind(this);
       this.add = this.add.bind(this);
       this.delete = this.delete.bind(this);
-
+      username: Cookies.set('id', id);
     }
 
 
@@ -323,21 +323,29 @@ changeSelectOptionFile(fileValue){
 
 
 sendJSON(){ //getting the user data to display on the dashboard
+  let cookie_value =  Cookies.get('id');
+  //console.log("Cookie Value" ,  cookie_value);
+  let axiosConfig = {
+
+//   headers: {Authorization: `${cookie_value}`}
+
+  };
 this.setState({loading: true})
+  axios.defaults.headers.common['Authorization'] = cookie_value;
     axios.post('http://localhost:9000/protein/query', {
           fileName:nameOfFiles2,
           file: lastContentArray,
           body:  JSON.parse(JSON.stringify(query1))
-          })
+
+        }, axiosConfig)
           .then((results) => {
-
-            this.setState({loading: false, control:results.status , query:queryresult, preview:results.data})
-
+            this.setState({loading: false, control:results.status , query:queryresult, preview:results.data});
             uploadFileSize=0;
             lastContentArray=[];
             nameOfFiles2=[];
             filesize=0;
-            console.log(results.data.indexOf("More than 5000 query"));
+
+    //        console.log(results.data.indexOf("More than 5000 query"));
 
 
         }).catch(err => {
@@ -360,7 +368,7 @@ this.setState({loading: true})
 
 
     const {control,loading, query,preview,optionsState,optionsStateFile,selectedOption} = this.state;
-    console.log(preview);
+
     if(preview.indexOf("More than 5000 query")>-1){
       //console.log("It's more than 5000");
       return (<Redirect to={{ pathname: "/warning"}} />)
