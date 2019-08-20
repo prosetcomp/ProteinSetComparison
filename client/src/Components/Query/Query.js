@@ -7,7 +7,6 @@ import { Redirect } from 'react-router';
 import './query-builder.css';
 import Select from 'react-select';
 import ExtendedQuery from './ExtendedQuery';
-import PopupPage from './PopupPage';
 import Cookies from 'js-cookie';
   var uniqid = require('uniqid');
 

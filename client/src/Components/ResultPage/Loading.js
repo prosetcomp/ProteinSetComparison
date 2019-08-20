@@ -1,9 +1,6 @@
 import React, { Component } from 'react';
-
-import Query from  '../Query/Query';
 import { css } from 'react-emotion';
 import { ClipLoader } from 'react-spinners';
-import { Redirect } from 'react-router';
 
 
 const override = css`

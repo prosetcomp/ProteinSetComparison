@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import Query from './Query';
 import Footer from '../Footer/Footer';
 import _ from 'lodash';
 import CircularProgressbar from 'react-circular-progressbar';
@@ -48,8 +47,8 @@ class ChangingProgressbar extends React.Component {
   render() {
     const currentPercentage = this.getCurrentPercentage();
     if(currentPercentage===0){
-      {this.closeConnection()}
-      return  (<Redirect to={{ pathname: "/", state: { preview: this.state.preview } }} />)
+      this.closeConnection()
+      return  (<Redirect to={{ pathname: "/", state: { preview: this.state.preview }}} />)
     }
     return (
       <CircularProgressbar
