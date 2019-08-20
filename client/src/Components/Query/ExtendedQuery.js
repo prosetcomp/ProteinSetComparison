@@ -5,7 +5,6 @@ import CircularProgressbar from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { Redirect } from 'react-router';
 import axios from 'axios';
-// Animation duration override in CSS file!
 import './custom.css';
 
 class ChangingProgressbar extends React.Component {
