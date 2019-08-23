@@ -133,13 +133,13 @@ closeConnection(){
   handleChange(value) {
 
     this.setState({selectedValue: value});
-    {this.closeConnection()}
+     //{this.closeConnection()}
 
 
   }
   handleSelect(key) {
       this.setState({ key: key });
-      {this.closeConnection()}
+    //  {this.closeConnection()}
   }
 
   handleChange2(checked) {

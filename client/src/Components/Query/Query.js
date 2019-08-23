@@ -8,7 +8,7 @@ import './query-builder.css';
 import Select from 'react-select';
 import ExtendedQuery from './ExtendedQuery';
 import Cookies from 'js-cookie';
-  var uniqid = require('uniqid');
+var uniqid = require('uniqid');
 
 
 
@@ -259,7 +259,7 @@ function logQuery(query) {
 }
 
 
-var id = uniqid();
+
 class Query extends Component {
 
   constructor(props){
@@ -270,7 +270,7 @@ class Query extends Component {
       this.changeSelectOptionFile = this.changeSelectOptionFile.bind(this);
       this.add = this.add.bind(this);
       this.delete = this.delete.bind(this);
-      username: Cookies.set('id', id);
+      username: Cookies.set('id', uniqid());
     }
 
 
@@ -323,7 +323,7 @@ changeSelectOptionFile(fileValue){
 
 sendJSON(){ //getting the user data to display on the dashboard
   let cookie_value =  Cookies.get('id');
-  //console.log("Cookie Value" ,  cookie_value);
+  console.log("Cookie Value" ,  cookie_value);
   let axiosConfig = {
 
 //   headers: {Authorization: `${cookie_value}`}
