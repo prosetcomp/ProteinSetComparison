@@ -41,7 +41,7 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
            sessionID=id_json;
            conn=connection;
            map_size= key_value_list.size();
-	combinatorList.addAll(key_value_combinator_list);
+	         combinatorList.addAll(key_value_combinator_list);
 
 
            //Set Up Criteria For Each Query
@@ -125,11 +125,9 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 					           }
 							  else if (key.equals("pathway_id")) {
 
-						        CriteriaQuery cq =searchProteinbyPathwayId(foo,species);
-					        	// CriteriaQuery cq = searchProteinbyPathwaySpecies (species);
-						 	temp_criteria.add(cq);
-
-							species=null;
+    						        CriteriaQuery cq =searchProteinbyPathwayId(foo,species);
+    					          temp_criteria.add(cq);
+    							      species=null;
 					           }
 							  else if (key.equals("protein_isreviewed")) {
 					            	CriteriaQuery cq =searchProteinbyProteinIs_reviewed(foo);
@@ -392,9 +390,9 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
         int current_position=1;
 
         public void parseListOfList(List<List<CriteriaQuery>> criteriaList, Connection conn) throws SQLException{
-	        	 if(temp_map_size==0){
-					createTempTable(sessionID,collect_lastset);
-			 }
+          if(temp_map_size==0){
+					       createTempTable(sessionID,collect_lastset);
+			     }
 			 for(int a = 0 ;a<temp_map_size;a++) {
 				  List<CriteriaQuery> cl =criteriaList.get(a);
         		     	  List<String> combinator_query = combinatorList.get(a);
@@ -405,12 +403,14 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 		     }
 			 current_position=1;
 			 temp_map_size=0;
+
         	}
 
         public void runCriteriaList(List<CriteriaQuery> cl,List<String> combinator_query,int query_number) throws SQLException {
-	        	int i = cl.size()-1;
+
+	int i = cl.size()-1;
 	        List<Set<String>> returnList= new ArrayList<Set<String>>();
-		     List<String> query_combinator = new ArrayList<>();
+		 List<String> query_combinator = new ArrayList<>();
 	        query_combinator.addAll(combinator_query);
 	        while(i>-1) {
 	         	CriteriaQuery cquery=cl.get(i);
@@ -437,7 +437,8 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 	 Set<String> all_ensembl_id=new HashSet<>();
 	 List<List<String>> combinatorList = new ArrayList<>();
 	public void processSetList(List<String> OperationList , List<Set<String>> returnList,int query_number) throws SQLException {
-			Set<String> finalIntersectionSet = returnList.get(returnList.size()-1);
+
+		Set<String> finalIntersectionSet = returnList.get(returnList.size()-1);
 			//Set<String> lastintersection = new HashSet<>();
 	        Set<String> lastset = new HashSet<>();
 
@@ -494,8 +495,8 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 			        	 Statement stmt = conn.createStatement();
 				     String table_name = "protlist"+group+"_"+session_ID;
 
-			        	 String sql = "CREATE TEMPORARY TABLE " + table_name +
-		                            "(ACCESSION VARCHAR(40) not NULL ," +
+			        	 String sql = "CREATE TABLE " + table_name +
+		                            "(ACCESSION VARCHAR(10) not NULL ," +
 		                            "PRIMARY KEY my_pkey (ACCESSION))";
 
 
@@ -677,25 +678,29 @@ public void iterateJsonObject(List<List<String>> key_value_list, String id_json,
 }
 
 public void clearEverything(Connection conn) throws SQLException {
+
 	collect_lastset.clear();
 	all_uniprot_accession.clear();
 	all_uniprot_id.clear();
 	all_ref_id.clear();
-	all_ensembl_id.clear();
+	 all_ensembl_id.clear();
 	combinatorList.clear();
 }
 
 public void  callJoinFunction(Connection conn) throws SQLException {
 
-		call_GM_StoredProcedure(conn);
-	    call_GB_StoredProcedure(conn);
-	    call_PW_StoredProcedure(conn);
-	    call_DM_StoredProcedure(conn);
-	    call_PROT_StoredProcedure(conn);
-	   clearEverything(conn);
+		//call_GM_StoredProcedure(conn);
+	    //call_GB_StoredProcedure(conn);
+	    //call_PW_StoredProcedure(conn);
+	    //call_DM_StoredProcedure(conn);
+	    //call_PROT_StoredProcedure(conn);
+	   //call_DM_StoredProcedure(conn);
+		clearEverything(conn);
+
 	}
 
 	public List<List<HashMap<String,String>>> call_GM_StoredProcedure(Connection connection) throws SQLException{
+			//System.out.println("Begining of call_GM_StoredProcedure!");
 			List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
 			List<HashMap<String, String>> notReturn = new ArrayList<HashMap<String, String>>();
 			HashMap<String, String> notReturnMessage = new HashMap<String, String>();
@@ -886,9 +891,9 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 	          	  	   result_g.add(data);
 	              }
    	              result2.add(result_a);
-  	              result2.add(result_b);
-  	              result2.add(result_c);
-  	              result2.add(result_d);
+	              result2.add(result_b);
+	              result2.add(result_c);
+	              result2.add(result_d);
   	              result2.add(result_e);
   	              result2.add(result_f);
   	              result2.add(result_g);
@@ -1127,9 +1132,9 @@ public void  callJoinFunction(Connection conn) throws SQLException {
       	              result2.add(result_f);
       	              result2.add(result_g);
       	              result2.add(result_h);
-  	  	              result2.add(result_i);
-  	  	              result2.add(result_j);
-  	  	              result2.add(result_k);
+	  	              result2.add(result_i);
+	  	              result2.add(result_j);
+	  	              result2.add(result_k);
 	    	              result2.add(result_l);
 	    	              result2.add(result_m);
 	    	              result2.add(result_n);
@@ -1145,6 +1150,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 
 				}
 			}
+
 			return result2;
 
 
@@ -1153,6 +1159,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 
 
 	public List<List<HashMap<String,String>>> call_GB_StoredProcedure(Connection connection) throws SQLException{
+		//System.out.println("Begining of call_GB_StoredProcedure!");
 		List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
 		List<HashMap<String, String>> notReturn = new ArrayList<HashMap<String, String>>();
 		HashMap<String, String> notReturnMessage = new HashMap<String, String>();
@@ -1576,13 +1583,13 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              result2.add(result_b);
     	              result2.add(result_c);
     	              result2.add(result_d);
-    	              result2.add(result_e);
-    	              result2.add(result_f);
-    	              result2.add(result_g);
-    	              result2.add(result_h);
-    	              result2.add(result_i);
-    	              result2.add(result_j);
-    	              result2.add(result_k);
+  	              result2.add(result_e);
+  	              result2.add(result_f);
+  	              result2.add(result_g);
+  	              result2.add(result_h);
+  	              result2.add(result_i);
+  	              result2.add(result_j);
+  	              result2.add(result_k);
     	              result2.add(result_l);
     	              result2.add(result_m);
     	              result2.add(result_n);
@@ -1599,6 +1606,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 
 				}
 			}
+
 	  return result2;
 
 
@@ -1609,6 +1617,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 
 
 	public List<List<HashMap<String,String>>> call_PW_StoredProcedure(Connection connection) throws SQLException{
+
 		List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
 		List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 		if(map_size==1) {
@@ -2029,19 +2038,20 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              result2.add(result_b);
     	              result2.add(result_c);
     	              result2.add(result_d);
-    	              result2.add(result_e);
-    	              result2.add(result_f);
-    	              result2.add(result_g);
-    	              result2.add(result_h);
-    	              result2.add(result_i);
-    	              result2.add(result_j);
-    	              result2.add(result_k);
+  	              result2.add(result_e);
+  	              result2.add(result_f);
+  	              result2.add(result_g);
+  	              result2.add(result_h);
+  	              result2.add(result_i);
+  	              result2.add(result_j);
+  	              result2.add(result_k);
     	              result2.add(result_l);
     	              result2.add(result_m);
     	              result2.add(result_n);
     	              result2.add(result_o);
 
 			}
+
 		return result2;
 
 
@@ -2049,6 +2059,7 @@ public void  callJoinFunction(Connection conn) throws SQLException {
 
 
 	public List<List<HashMap<String,String>>> call_DM_StoredProcedure(Connection connection) throws SQLException{
+		//System.out.println("Begining of call_DM_StoredProcedure!");
 		List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
 		List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 		if(map_size==1) {
@@ -2480,12 +2491,14 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              result2.add(result_o);
 
 			}
+
 		return result2;
 
 
 	}
 
 	public List<List<HashMap<String,String>>> call_PROT_StoredProcedure(Connection connection) throws SQLException{
+	//System.out.println("Begining of call_PROT_StoredProcedure!");
 		List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
 		List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 		if(map_size==1) {
@@ -2679,9 +2692,9 @@ public void  callJoinFunction(Connection conn) throws SQLException {
           	  	   result_g.add(data);
               }
 	              result2.add(result_a);
-                result2.add(result_b);
-                result2.add(result_c);
-                result2.add(result_d);
+              result2.add(result_b);
+              result2.add(result_c);
+              result2.add(result_d);
 	              result2.add(result_e);
 	              result2.add(result_f);
 	              result2.add(result_g);
@@ -2931,20 +2944,21 @@ public void  callJoinFunction(Connection conn) throws SQLException {
     	              result2.add(result_b);
     	              result2.add(result_c);
     	              result2.add(result_d);
-    	              result2.add(result_e);
-    	              result2.add(result_f);
-    	              result2.add(result_g);
-    	              result2.add(result_h);
-    	              result2.add(result_i);
-    	              result2.add(result_j);
-    	              result2.add(result_k);
+  	              result2.add(result_e);
+  	              result2.add(result_f);
+  	              result2.add(result_g);
+  	              result2.add(result_h);
+  	              result2.add(result_i);
+  	              result2.add(result_j);
+  	              result2.add(result_k);
     	              result2.add(result_l);
     	              result2.add(result_m);
     	              result2.add(result_n);
     	              result2.add(result_o);
 
 			}
-		return result2;
+
+	return result2;
 
 
 	}
@@ -2984,6 +2998,7 @@ public List<List<HashMap<String,String>>>  PATHWAY_ACCESSION(String sessionID, i
 				}
 
              		result2.add(result);
+		//		System.out.println("Result2"+ result2);
 
 
 		return result2;
@@ -2996,7 +3011,7 @@ public List<List<HashMap<String,String>>>  MOLECULARFUNCTION_ACCESSION(String se
 
   	Statement stmt = conn.createStatement();
   	List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
-	  List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 
 	String sql="";
 	for(int i=0;i<regions.size();i++) {
@@ -3012,6 +3027,9 @@ public List<List<HashMap<String,String>>>  MOLECULARFUNCTION_ACCESSION(String se
 		}
 
 	}
+//	System.out.println("SQL QUERY= " + sql);
+
+//	ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM " + tableName +" gm JOIN PROT p ON gm.ACCESSION=p.ACC where ONTOLOGY="+go_id);
 	ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM ("+sql+") AS gm JOIN PROT p ON gm.ACCESSION=p.ACC where ONTOLOGY="+go_id);
 
 			while(rs.next()) {
@@ -3026,6 +3044,7 @@ public List<List<HashMap<String,String>>>  MOLECULARFUNCTION_ACCESSION(String se
 			}
 
          		result2.add(result);
+		//	System.out.println("Result2"+ result2);
 
 
 	return result2;
@@ -3037,7 +3056,7 @@ public List<List<HashMap<String,String>>>  BIOLOGICALPROCESS_ACCESSION(String se
 
   	Statement stmt = conn.createStatement();
   	List<List<HashMap<String,String>>> result2 = new ArrayList<List<HashMap<String, String>>>();
-	  List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
+	List<HashMap<String, String>> result = new ArrayList<HashMap<String, String>>();
 
 	String sql="";
 	for(int i=0;i<regions.size();i++) {
@@ -3058,6 +3077,8 @@ public List<List<HashMap<String,String>>>  BIOLOGICALPROCESS_ACCESSION(String se
 
 
 
+	//ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM " + tableName +" gb JOIN PROT p ON gb.ACCESSION=p.ACC where ONTOLOGY="+go_id);
+
 			while(rs.next()) {
 			  HashMap<String, String> data = new HashMap<String, String>();
 	            	  data.put("accession", rs.getString("ACCESSION"));
@@ -3070,6 +3091,7 @@ public List<List<HashMap<String,String>>>  BIOLOGICALPROCESS_ACCESSION(String se
 			}
 
          		result2.add(result);
+		//	System.out.println("Result2"+ result2);
 
 
 	return result2;
@@ -3096,6 +3118,10 @@ public List<List<HashMap<String,String>>>  DOMAIN_ACCESSION(String sessionID, in
 		}
 
 	}
+//	ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM " + tableName +" dm JOIN PROT p ON dm.ACCESSION=p.ACC where DOMAIN="+ipr);
+//ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM " + tableName +" dm JOIN PFAM pf ON dm.DOMAIN = pf.PFAM_ID and dm join PROT p ON dm.ACCESSION=p.ACC where PFAM_ID="+ipr);
+//	ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM " + tableName +" dm JOIN PFAM pf ON dm.DOMAIN = pf.PFAM_ID and "+tableName+ " dm join PROT p ON dm.ACCESSION=p.ACC where PFAM_ID="+ipr);
+//ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM " + tableName +" dm JOIN PFAM pf ON dm.DOMAIN = pf.PFAM_ID join PROT p ON dm.ACCESSION=p.ACC where pf.IPR_ID="+ipr);
 ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON_NAME,p.IS_REVIEWED FROM ("+sql+") AS dm JOIN PFAM pf ON dm.DOMAIN = pf.PFAM_ID join PROT p ON dm.ACCESSION=p.ACC where pf.IPR_ID="+ipr);
 
 			while(rs.next()) {
@@ -3340,7 +3366,7 @@ ResultSet rs = stmt.executeQuery("SELECT p.ACCESSION, p.NAME, p.TAXON_ID,p.TAXON
 
 			//21
 			public CriteriaQuery searchProteinbyPathwayId (int ID, String SPECIES) {
-
+				 System.out.println("Species method" + SPECIES);
 				CriteriaBuilder builder = em.getCriteriaBuilder();
 				CriteriaQuery<PROTEIN> crit = builder.createQuery(PROTEIN.class);
 				Root<PROTEIN> protein = crit.from(PROTEIN.class);

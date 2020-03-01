@@ -117,6 +117,11 @@ Promise.all([
    // BTW you don't need to use axios.spread with ES2015 destructuring
    .then(([resultResponse, result2Response,result3Response, result4Response,result5Response]) => {
            this.setState({GM_a: resultResponse.data[0], GB_a : result2Response.data[0],PW_a: result3Response.data[0], DM_a : result4Response.data[0],PROT_a:result5Response.data[0]});
+           console.log(resultResponse.data[0]);
+           console.log(result2Response.data[0]);
+           console.log(result3Response.data[0]);
+           console.log(result4Response.data[0]);
+           console.log(result5Response.data[0]);
 
        });
   }
