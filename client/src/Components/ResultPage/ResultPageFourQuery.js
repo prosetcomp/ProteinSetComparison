@@ -46,7 +46,7 @@ var resultMolecular;
 var resultBiological;
 var resultPathway;
 var resultDomain;
-
+var resultDBank;
 class ResultPageFourQuery extends Component {
   constructor(props) {
     super(props)
@@ -61,6 +61,8 @@ class ResultPageFourQuery extends Component {
     DM_k: [],DM_l: [],DM_m: [],DM_n: [],DM_o: [],
     PROT_a: [],PROT_b: [],PROT_c: [],PROT_d: [],PROT_e: [],PROT_f: [],PROT_g: [],PROT_h: [],PROT_i: [],PROT_j: [],
     PROT_k: [],PROT_l: [],PROT_m: [],PROT_n: [],PROT_o: [],
+    DBANK_a: [],DBANK_b: [],DBANK_c: [],DBANK_d: [],DBANK_e: [],DBANK_f: [],DBANK_g: [],DBANK_h: [],DBANK_i: [],DBANK_j: [],
+    DBANK_k: [],DBANK_l: [],DBANK_m: [],DBANK_n: [],DBANK_o: [],
     selectedValue:["o"],
     key:1,
      preview:this.props.location.state,
@@ -68,7 +70,8 @@ class ResultPageFourQuery extends Component {
      mfaccessionresult:[],
      bpaccessionresult:[],
      pwaccessionresult:[],
-     dmaccessionresult:[]
+     dmaccessionresult:[],
+     dbankaccessionresult:[],
 
 
     }
@@ -82,6 +85,7 @@ class ResultPageFourQuery extends Component {
       this.makeRequestBiological = this.makeRequestBiological.bind(this);
       this.makeRequestPathway = this.makeRequestPathway.bind(this);
       this.makeRequestDomain = this.makeRequestDomain.bind(this);
+      this.makeRequestDrugBank = this.makeRequestDrugBank.bind(this);
       this.openModal = this.openModal.bind(this);
 
 
@@ -105,6 +109,7 @@ class ResultPageFourQuery extends Component {
          axios.get('http://localhost:9000/protein/pw'),
          axios.get('http://localhost:9000/protein/dm'),
          axios.get('http://localhost:9000/protein/prot'),
+         axios.get('http://localhost:9000/protein/dbank')
 
        ]).then(result => {
             this.setState({
@@ -132,6 +137,11 @@ class ResultPageFourQuery extends Component {
           PROT_e: result[4].data[4],PROT_f: result[4].data[5],PROT_g: result[4].data[6],PROT_h: result[4].data[7],
           PROT_i: result[4].data[8],PROT_j: result[4].data[9],PROT_k: result[4].data[10],PROT_l: result[4].data[11],
           PROT_m: result[4].data[12],PROT_n: result[4].data[13],PROT_o: result[4].data[14],
+
+          DBANK_a: result[5].data[0],DBANK_b: result[5].data[1],DBANK_c: result[5].data[2],DBANK_d: result[5].data[3],
+          DBANK_e: result[5].data[4],DBANK_f: result[5].data[5],DBANK_g: result[5].data[6],DBANK_h: result[5].data[7],
+          DBANK_i: result[5].data[8],DBANK_j: result[5].data[9],DBANK_k: result[5].data[10],DBANK_l: result[5].data[11],
+          DBANK_m: result[5].data[12],DBANK_n: result[5].data[13],DBANK_o: result[5].data[14]
 
           });
 
@@ -269,6 +279,29 @@ _validateFunctionPathway(row) {
     //{this.openModal()}
  }
 
+ //DrugBank
+  buttonFunctionDrugBank(cell, row) {
+       return <label>
+                 <button type="button"
+                         id="validatebutton"
+                         onClick={() => {this._validateFunctionDrugBank(row)}}
+                         className="bbtn btn-primary btn-sm">
+                           Show
+                 </button>
+              </label>
+  }
+
+  _validateFunctionDrugBank(row) {
+     const regex = /(<([^>]+)>)/ig;
+     var numberPattern = /(\d+){5,}/g;
+     const result0 = row.idurl.replace(regex, '');
+
+     resultDBank = result0.match( numberPattern );
+     //console.log(resultDBank);
+    {this.makeRequestDrugBank()}
+     //{this.openModal()}
+  }
+
 
 //Requests for related proteins
 
@@ -336,6 +369,21 @@ axios.post('http://localhost:9000/protein/dmaccession', {
 {this.openModal()}
 }
 
+//DrugBank
+ makeRequestDrugBank(){
+ let cookie_value =  Cookies.get('id');
+ axios.defaults.headers.common['Authorization'] = cookie_value;
+ axios.post('http://localhost:9000/protein/dbankaccession', {
+       region:this.state.selectedValue,
+       body:  JSON.parse(JSON.stringify(resultDBank))
+ })
+ .then((results) => {
+   this.setState({dbankaccessionresult:results.data[0]});
+ }).catch(err => {
+
+ });
+ {this.openModal()}
+ }
 
 openModal(){
 this.setState({ open: true });
@@ -454,7 +502,14 @@ formatNameAccession(cell, row) {
         </div>
      );
      }
+   formatIdUrl(cell,row){
+     return (
 
+         <td dangerouslySetInnerHTML={{__html: row.idurl}} />
+
+
+     );
+   }
 
   render() {
     function drawUpset(sets){
@@ -545,15 +600,16 @@ formatNameAccession(cell, row) {
           GB_a,GB_b,GB_c ,GB_d,GB_e,GB_f ,GB_g,GB_h,GB_i,GB_j ,GB_k,GB_l,GB_m ,GB_n,GB_o,
           PW_a,PW_b,PW_c ,PW_d,PW_e,PW_f ,PW_g,PW_h,PW_i,PW_j ,PW_k,PW_l,PW_m ,PW_n,PW_o,
           DM_a,DM_b,DM_c ,DM_d,DM_e,DM_f ,DM_g,DM_h,DM_i,DM_j ,DM_k,DM_l,DM_m ,DM_n,DM_o,
-          PROT_a,PROT_b,PROT_c ,PROT_d,PROT_e,PROT_f ,PROT_g,PROT_h,PROT_i,PROT_j ,PROT_k,PROT_l,PROT_m ,PROT_n,PROT_o,
+          PROT_a,PROT_b,PROT_c ,PROT_d,PROT_e,PROT_f ,PROT_g,PROT_h,PROT_i,PROT_j ,PROT_k,PROT_l,PROT_m ,PROT_n,PROT_o,DBANK_a,DBANK_b,DBANK_c ,DBANK_d,DBANK_e,DBANK_f ,DBANK_g,DBANK_h,DBANK_i,DBANK_j ,DBANK_k,DBANK_l,DBANK_m ,DBANK_n,DBANK_o,
           selectedValue,key,preview} =this.state;
-  const {open,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult } = this.state;
+  const {open,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult,dbankaccessionresult } = this.state;
 
   let value_GM =GM_o;
   let value_GB=GB_o;
   let value_PW=PW_o;
   let value_DM=DM_o;
   let value_PROT=PROT_o;
+  let value_DBANK = DBANK_o;
   var tsvData="";
   let data ;
   if(key==2){
@@ -569,6 +625,10 @@ formatNameAccession(cell, row) {
 
   else if(key==5){
     data = dmaccessionresult;
+  }
+
+  else if(key==6){
+    data = dbankaccessionresult;
   }
 
     function exportTsv(){
@@ -626,6 +686,14 @@ formatNameAccession(cell, row) {
 
 
           }
+
+      }
+      else if(key===6){
+        tsvData= JSON.parse(JSON.stringify(value_DBANK));
+        //console.log(DM_a);
+        for(var i in tsvData){
+            tsvData[i].idurl= tsvData[i].idurl.replace(/(<([^>]+)>)/ig, '')
+       }
 
       }
 
@@ -786,6 +854,33 @@ formatNameAccession(cell, row) {
         drawUpset(sets)
       }
 
+      else if(key===6 ){
+
+
+        const sets = [
+          {"sets": [0], "label": DBANK_h.length+'', "size": 150},
+          {"sets": [1], "label": DBANK_d.length+'', "size": 145},
+          {"sets": [2], "label":  DBANK_b.length+'', "size": 150},
+          {"sets": [3], "label":  DBANK_a.length+'', "size": 145},
+          {"sets": [0, 1], "label":DBANK_l.length+'', "size": 90},
+          {"sets": [0, 2], "label":DBANK_j.length+'', "size": 65},
+          {"sets": [0, 3], "label":DBANK_i.length+'', "size": 65},
+          {"sets": [1, 2], "label": DBANK_f.length+'', "size": 65},
+          {"sets": [1, 3], "label": DBANK_e.length+'', "size": 85},
+          {"sets": [2, 3], "label": DBANK_c.length+'', "size": 65},
+          {"sets": [0, 1, 2], "label":DBANK_n.length+'', "size":35},
+          {"sets": [0, 1, 3], "label":DBANK_m.length+'', "size":35},
+          {"sets": [0, 2, 3], "label":DBANK_k.length+'', "size":35},
+          {"sets": [1, 2, 3], "label":DBANK_g.length+'', "size":35},
+          {"sets": [0, 1, 2,3], "label":DBANK_o.length+'', "size":5},
+
+
+        ];
+
+
+        drawUpset(sets)
+      }
+
 
       if(selectedValue.length===0){
         value_GM=[];
@@ -793,6 +888,7 @@ formatNameAccession(cell, row) {
         value_PW=[];
         value_DM=[];
         value_PROT=[];
+        value_DBANK = [];
       }
 
       else if(selectedValue.length===1){
@@ -801,16 +897,19 @@ formatNameAccession(cell, row) {
           let name3="PW_"
           let name4="DM_"
           let name5= "PROT_"
+          let name6= "DBANK_"
           let concat_name_GM =name1+selectedValue[0];
           let concat_name_GB =name2+selectedValue[0];
           let concat_name_PW =name3+selectedValue[0];
           let concat_name_DM =name4+selectedValue[0];
           let concat_name_PROT =name5+selectedValue[0];
+          let concat_name_DBANK =name6+selectedValue[0];
           value_GM=eval(concat_name_GM);
           value_GB=eval(concat_name_GB);
           value_PW=eval(concat_name_PW);
           value_DM=eval(concat_name_DM);
           value_PROT=eval(concat_name_PROT);
+          value_DBANK=eval(concat_name_DBANK);
           exportTsv();
   }
         else if(selectedValue.length===2){
@@ -819,21 +918,25 @@ formatNameAccession(cell, row) {
           let name3="PW_"
           let name4="DM_"
           let name5= "PROT_"
+          let name6= "DBANK_"
           let concat_name_GM1 =eval(name1+selectedValue[0]);
           let concat_name_GB1 =eval(name2+selectedValue[0]);
           let concat_name_PW1 =eval(name3+selectedValue[0]);
           let concat_name_DM1 =eval(name4+selectedValue[0]);
           let concat_name_PROT1 =eval(name5+selectedValue[0]);
+          let concat_name_DBANK1 =eval(name6+selectedValue[0]);
           let concat_name_GM2 =eval(name1+selectedValue[1]);
           let concat_name_GB2 =eval(name2+selectedValue[1]);
           let concat_name_PW2 =eval(name3+selectedValue[1]);
           let concat_name_DM2 =eval(name4+selectedValue[1]);
           let concat_name_PROT2 =eval(name5+selectedValue[1]);
+          let concat_name_DBANK2 =eval(name6+selectedValue[1]);
           value_GM=_.union(concat_name_GM1,concat_name_GM2);
           value_GB=_.union(concat_name_GB1,concat_name_GB2);
           value_PW=_.union(concat_name_PW1,concat_name_PW2);
           value_DM=_.union(concat_name_DM1,concat_name_DM2);
           value_PROT=_.union(concat_name_PROT1,concat_name_PROT2);
+          value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2);
           exportTsv();
 
 
@@ -844,27 +947,32 @@ formatNameAccession(cell, row) {
           let name3="PW_"
           let name4="DM_"
           let name5= "PROT_"
+          let name6= "DBANK_"
           let concat_name_GM1 =eval(name1+selectedValue[0]);
           let concat_name_GB1 =eval(name2+selectedValue[0]);
           let concat_name_PW1 =eval(name3+selectedValue[0]);
           let concat_name_DM1 =eval(name4+selectedValue[0]);
           let concat_name_PROT1 =eval(name5+selectedValue[0]);
+          let concat_name_DBANK1 =eval(name6+selectedValue[0]);
           let concat_name_GM2 =eval(name1+selectedValue[1]);
           let concat_name_GB2 =eval(name2+selectedValue[1]);
           let concat_name_PW2 =eval(name3+selectedValue[1]);
           let concat_name_DM2 =eval(name4+selectedValue[1]);
           let concat_name_PROT2 =eval(name5+selectedValue[1]);
+          let concat_name_DBANK2 =eval(name6+selectedValue[1]);
           let concat_name_GM3 =eval(name1+selectedValue[2]);
           let concat_name_GB3 =eval(name2+selectedValue[2]);
           let concat_name_PW3 =eval(name3+selectedValue[2]);
           let concat_name_DM3 =eval(name4+selectedValue[2]);
           let concat_name_PROT3 =eval(name5+selectedValue[2]);
+          let concat_name_DBANK3 =eval(name6+selectedValue[2]);
 
           value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3);
           value_GB=_.union(concat_name_GB1,concat_name_GB2,concat_name_GB3);
           value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3);
           value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3);
           value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3);
+          value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3);
           exportTsv();
 
 
@@ -875,32 +983,38 @@ formatNameAccession(cell, row) {
           let name3="PW_"
           let name4="DM_"
           let name5= "PROT_"
+          let name6= "DBANK_"
           let concat_name_GM1 =eval(name1+selectedValue[0]);
           let concat_name_GB1 =eval(name2+selectedValue[0]);
           let concat_name_PW1 =eval(name3+selectedValue[0]);
           let concat_name_DM1 =eval(name4+selectedValue[0]);
           let concat_name_PROT1 =eval(name5+selectedValue[0]);
+          let concat_name_DBANK1 =eval(name6+selectedValue[0]);
           let concat_name_GM2 =eval(name1+selectedValue[1]);
           let concat_name_GB2 =eval(name2+selectedValue[1]);
           let concat_name_PW2 =eval(name3+selectedValue[1]);
           let concat_name_DM2 =eval(name4+selectedValue[1]);
           let concat_name_PROT2 =eval(name5+selectedValue[1]);
+          let concat_name_DBANK2 =eval(name6+selectedValue[1]);
           let concat_name_GM3 =eval(name1+selectedValue[2]);
           let concat_name_GB3 =eval(name2+selectedValue[2]);
           let concat_name_PW3 =eval(name3+selectedValue[2]);
           let concat_name_DM3 =eval(name4+selectedValue[2]);
           let concat_name_PROT3 =eval(name5+selectedValue[2]);
+          let concat_name_DBANK3 =eval(name6+selectedValue[2]);
           let concat_name_GM4 =eval(name1+selectedValue[3]);
           let concat_name_GB4 =eval(name2+selectedValue[3]);
           let concat_name_PW4 =eval(name3+selectedValue[3]);
           let concat_name_DM4 =eval(name4+selectedValue[3]);
           let concat_name_PROT4 =eval(name5+selectedValue[3]);
+          let concat_name_DBANK4 =eval(name6+selectedValue[3]);
 
           value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3,concat_name_GM4);
           value_GB=_.union(concat_name_GB1,concat_name_GB2,concat_name_GB3,concat_name_GB4);
           value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3,concat_name_PW4);
           value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3,concat_name_DM4);
           value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4);
+          value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4);
           exportTsv();
 
 
@@ -911,31 +1025,37 @@ formatNameAccession(cell, row) {
           let name3="PW_"
           let name4="DM_"
           let name5= "PROT_"
+          let name6= "DBANK_"
           let concat_name_GM1 =eval(name1+selectedValue[0]);
           let concat_name_GB1 =eval(name2+selectedValue[0]);
           let concat_name_PW1 =eval(name3+selectedValue[0]);
           let concat_name_DM1 =eval(name4+selectedValue[0]);
           let concat_name_PROT1 =eval(name5+selectedValue[0]);
+          let concat_name_DBANK1 =eval(name6+selectedValue[0]);
           let concat_name_GM2 =eval(name1+selectedValue[1]);
           let concat_name_GB2 =eval(name2+selectedValue[1]);
           let concat_name_PW2 =eval(name3+selectedValue[1]);
           let concat_name_DM2 =eval(name4+selectedValue[1]);
           let concat_name_PROT2 =eval(name5+selectedValue[1]);
+          let concat_name_DBANK2 =eval(name6+selectedValue[1]);
           let concat_name_GM3 =eval(name1+selectedValue[2]);
           let concat_name_GB3 =eval(name2+selectedValue[2]);
           let concat_name_PW3 =eval(name3+selectedValue[2]);
           let concat_name_DM3 =eval(name4+selectedValue[2]);
           let concat_name_PROT3 =eval(name5+selectedValue[2]);
+          let concat_name_DBANK3 =eval(name6+selectedValue[2]);
           let concat_name_GM4 =eval(name1+selectedValue[3]);
           let concat_name_GB4 =eval(name2+selectedValue[3]);
           let concat_name_PW4 =eval(name3+selectedValue[3]);
           let concat_name_DM4 =eval(name4+selectedValue[3]);
           let concat_name_PROT4 =eval(name5+selectedValue[3]);
+          let concat_name_DBANK4 =eval(name6+selectedValue[3]);
           let concat_name_GM5 =eval(name1+selectedValue[4]);
           let concat_name_GB5 =eval(name2+selectedValue[4]);
           let concat_name_PW5 =eval(name3+selectedValue[4]);
           let concat_name_DM5 =eval(name4+selectedValue[4]);
           let concat_name_PROT5 =eval(name5+selectedValue[4]);
+          let concat_name_DBANK5 =eval(name6+selectedValue[4]);
 
 
           value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3,concat_name_GM4,concat_name_GM5);
@@ -943,6 +1063,7 @@ formatNameAccession(cell, row) {
           value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3,concat_name_PW4,concat_name_PW5);
           value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3,concat_name_DM4,concat_name_DM5);
           value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5);
+          value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5);
           exportTsv();
 
 
@@ -953,36 +1074,43 @@ formatNameAccession(cell, row) {
           let name3="PW_"
           let name4="DM_"
           let name5= "PROT_"
+          let name6= "DBANK_"
           let concat_name_GM1 =eval(name1+selectedValue[0]);
           let concat_name_GB1 =eval(name2+selectedValue[0]);
           let concat_name_PW1 =eval(name3+selectedValue[0]);
           let concat_name_DM1 =eval(name4+selectedValue[0]);
           let concat_name_PROT1 =eval(name5+selectedValue[0]);
+          let concat_name_DBANK1 =eval(name6+selectedValue[0]);
           let concat_name_GM2 =eval(name1+selectedValue[1]);
           let concat_name_GB2 =eval(name2+selectedValue[1]);
           let concat_name_PW2 =eval(name3+selectedValue[1]);
           let concat_name_DM2 =eval(name4+selectedValue[1]);
           let concat_name_PROT2 =eval(name5+selectedValue[1]);
+          let concat_name_DBANK2 =eval(name6+selectedValue[1]);
           let concat_name_GM3 =eval(name1+selectedValue[2]);
           let concat_name_GB3 =eval(name2+selectedValue[2]);
           let concat_name_PW3 =eval(name3+selectedValue[2]);
           let concat_name_DM3 =eval(name4+selectedValue[2]);
           let concat_name_PROT3 =eval(name5+selectedValue[2]);
+          let concat_name_DBANK3 =eval(name6+selectedValue[2]);
           let concat_name_GM4 =eval(name1+selectedValue[3]);
           let concat_name_GB4 =eval(name2+selectedValue[3]);
           let concat_name_PW4 =eval(name3+selectedValue[3]);
           let concat_name_DM4 =eval(name4+selectedValue[3]);
           let concat_name_PROT4 =eval(name5+selectedValue[3]);
+          let concat_name_DBANK4 =eval(name6+selectedValue[3]);
           let concat_name_GM5 =eval(name1+selectedValue[4]);
           let concat_name_GB5 =eval(name2+selectedValue[4]);
           let concat_name_PW5 =eval(name3+selectedValue[4]);
           let concat_name_DM5 =eval(name4+selectedValue[4]);
           let concat_name_PROT5 =eval(name5+selectedValue[4]);
+          let concat_name_DBANK5 =eval(name6+selectedValue[4]);
           let concat_name_GM6 =eval(name1+selectedValue[5]);
           let concat_name_GB6 =eval(name2+selectedValue[5]);
           let concat_name_PW6 =eval(name3+selectedValue[5]);
           let concat_name_DM6 =eval(name4+selectedValue[5]);
           let concat_name_PROT6 =eval(name5+selectedValue[5]);
+          let concat_name_DBANK6 =eval(name6+selectedValue[5]);
 
 
 
@@ -992,6 +1120,7 @@ formatNameAccession(cell, row) {
           value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3,concat_name_PW4,concat_name_PW5,concat_name_PW6);
           value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3,concat_name_DM4,concat_name_DM5,concat_name_DM6);
           value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,concat_name_PROT6);
+          value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,concat_name_DBANK6);
           exportTsv();
 
 
@@ -1002,41 +1131,49 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
 
           value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3,concat_name_GM4,concat_name_GM5,concat_name_GM6,
           concat_name_GM7);
@@ -1048,6 +1185,8 @@ formatNameAccession(cell, row) {
           concat_name_DM7);
           value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
           concat_name_PROT6,concat_name_PROT7);
+          value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+          concat_name_DBANK6,concat_name_DBANK7);
           exportTsv();
 
 
@@ -1058,47 +1197,55 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
         let concat_name_GM8 =eval(name1+selectedValue[7]);
         let concat_name_GB8 =eval(name2+selectedValue[7]);
         let concat_name_PW8 =eval(name3+selectedValue[7]);
         let concat_name_DM8 =eval(name4+selectedValue[7]);
         let concat_name_PROT8 =eval(name5+selectedValue[7]);
-
+        let concat_name_DBANK8 =eval(name6+selectedValue[7]);
 
 
         value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3,concat_name_GM4,concat_name_GM5,concat_name_GM6,
@@ -1111,6 +1258,8 @@ formatNameAccession(cell, row) {
         concat_name_DM7,concat_name_DM8);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
         concat_name_PROT6,concat_name_PROT7,concat_name_PROT8);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+        concat_name_DBANK6,concat_name_DBANK7,concat_name_DBANK8);
         exportTsv();
 
 
@@ -1121,51 +1270,61 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
         let concat_name_GM8 =eval(name1+selectedValue[7]);
         let concat_name_GB8 =eval(name2+selectedValue[7]);
         let concat_name_PW8 =eval(name3+selectedValue[7]);
         let concat_name_DM8 =eval(name4+selectedValue[7]);
         let concat_name_PROT8 =eval(name5+selectedValue[7]);
+        let concat_name_DBANK8 =eval(name6+selectedValue[7]);
         let concat_name_GM9 =eval(name1+selectedValue[8]);
         let concat_name_GB9 =eval(name2+selectedValue[8]);
         let concat_name_PW9 =eval(name3+selectedValue[8]);
         let concat_name_DM9 =eval(name4+selectedValue[8]);
         let concat_name_PROT9 =eval(name5+selectedValue[8]);
+        let concat_name_DBANK9 =eval(name6+selectedValue[8]);
 
 
 
@@ -1180,6 +1339,8 @@ formatNameAccession(cell, row) {
         concat_name_DM7,concat_name_DM8,concat_name_DM9);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
         concat_name_PROT6,concat_name_PROT7,concat_name_PROT8,concat_name_PROT9);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+        concat_name_DBANK6,concat_name_DBANK7,concat_name_DBANK8,concat_name_DBANK9);
         exportTsv();
 
 
@@ -1190,56 +1351,67 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
         let concat_name_GM8 =eval(name1+selectedValue[7]);
         let concat_name_GB8 =eval(name2+selectedValue[7]);
         let concat_name_PW8 =eval(name3+selectedValue[7]);
         let concat_name_DM8 =eval(name4+selectedValue[7]);
         let concat_name_PROT8 =eval(name5+selectedValue[7]);
+        let concat_name_DBANK8 =eval(name6+selectedValue[7]);
         let concat_name_GM9 =eval(name1+selectedValue[8]);
         let concat_name_GB9 =eval(name2+selectedValue[8]);
         let concat_name_PW9 =eval(name3+selectedValue[8]);
         let concat_name_DM9 =eval(name4+selectedValue[8]);
         let concat_name_PROT9 =eval(name5+selectedValue[8]);
+        let concat_name_DBANK9 =eval(name6+selectedValue[8]);
         let concat_name_GM10 =eval(name1+selectedValue[9]);
         let concat_name_GB10 =eval(name2+selectedValue[9]);
         let concat_name_PW10 =eval(name3+selectedValue[9]);
         let concat_name_DM10 =eval(name4+selectedValue[9]);
         let concat_name_PROT10 =eval(name5+selectedValue[9]);
+        let concat_name_DBANK10 =eval(name6+selectedValue[9]);
 
 
 
@@ -1254,6 +1426,8 @@ formatNameAccession(cell, row) {
         concat_name_DM7,concat_name_DM8,concat_name_DM9,concat_name_DM10);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
         concat_name_PROT6,concat_name_PROT7,concat_name_PROT8,concat_name_PROT9,concat_name_PROT10);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+        concat_name_DBANK6,concat_name_DBANK7,concat_name_DBANK8,concat_name_DBANK9,concat_name_DBANK10);
         exportTsv();
 
 
@@ -1266,61 +1440,73 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
         let concat_name_GM8 =eval(name1+selectedValue[7]);
         let concat_name_GB8 =eval(name2+selectedValue[7]);
         let concat_name_PW8 =eval(name3+selectedValue[7]);
         let concat_name_DM8 =eval(name4+selectedValue[7]);
         let concat_name_PROT8 =eval(name5+selectedValue[7]);
+        let concat_name_DBANK8 =eval(name6+selectedValue[7]);
         let concat_name_GM9 =eval(name1+selectedValue[8]);
         let concat_name_GB9 =eval(name2+selectedValue[8]);
         let concat_name_PW9 =eval(name3+selectedValue[8]);
         let concat_name_DM9 =eval(name4+selectedValue[8]);
         let concat_name_PROT9 =eval(name5+selectedValue[8]);
+        let concat_name_DBANK9 =eval(name6+selectedValue[8]);
         let concat_name_GM10 =eval(name1+selectedValue[9]);
         let concat_name_GB10 =eval(name2+selectedValue[9]);
         let concat_name_PW10 =eval(name3+selectedValue[9]);
         let concat_name_DM10 =eval(name4+selectedValue[9]);
         let concat_name_PROT10 =eval(name5+selectedValue[9]);
+        let concat_name_DBANK10 =eval(name6+selectedValue[9]);
         let concat_name_GM11 =eval(name1+selectedValue[10]);
         let concat_name_GB11 =eval(name2+selectedValue[10]);
         let concat_name_PW11 =eval(name3+selectedValue[10]);
         let concat_name_DM11 =eval(name4+selectedValue[10]);
         let concat_name_PROT11 =eval(name5+selectedValue[10]);
+        let concat_name_DBANK11 =eval(name6+selectedValue[10]);
 
 
 
@@ -1334,6 +1520,8 @@ formatNameAccession(cell, row) {
         concat_name_DM7,concat_name_DM8,concat_name_DM9,concat_name_DM10,concat_name_DM11);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
         concat_name_PROT6,concat_name_PROT7,concat_name_PROT8,concat_name_PROT9,concat_name_PROT10,concat_name_PROT11);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+        concat_name_DBANK6,concat_name_DBANK7,concat_name_DBANK8,concat_name_DBANK9,concat_name_DBANK10,concat_name_DBANK11);
         exportTsv();
 
 
@@ -1345,66 +1533,79 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
         let concat_name_GM8 =eval(name1+selectedValue[7]);
         let concat_name_GB8 =eval(name2+selectedValue[7]);
         let concat_name_PW8 =eval(name3+selectedValue[7]);
         let concat_name_DM8 =eval(name4+selectedValue[7]);
         let concat_name_PROT8 =eval(name5+selectedValue[7]);
+        let concat_name_DBANK8 =eval(name6+selectedValue[7]);
         let concat_name_GM9 =eval(name1+selectedValue[8]);
         let concat_name_GB9 =eval(name2+selectedValue[8]);
         let concat_name_PW9 =eval(name3+selectedValue[8]);
         let concat_name_DM9 =eval(name4+selectedValue[8]);
         let concat_name_PROT9 =eval(name5+selectedValue[8]);
+        let concat_name_DBANK9 =eval(name6+selectedValue[8]);
         let concat_name_GM10 =eval(name1+selectedValue[9]);
         let concat_name_GB10 =eval(name2+selectedValue[9]);
         let concat_name_PW10 =eval(name3+selectedValue[9]);
         let concat_name_DM10 =eval(name4+selectedValue[9]);
         let concat_name_PROT10 =eval(name5+selectedValue[9]);
+        let concat_name_DBANK10 =eval(name6+selectedValue[9]);
         let concat_name_GM11 =eval(name1+selectedValue[10]);
         let concat_name_GB11 =eval(name2+selectedValue[10]);
         let concat_name_PW11 =eval(name3+selectedValue[10]);
         let concat_name_DM11 =eval(name4+selectedValue[10]);
         let concat_name_PROT11 =eval(name5+selectedValue[10]);
+        let concat_name_DBANK11 =eval(name6+selectedValue[10]);
         let concat_name_GM12 =eval(name1+selectedValue[11]);
         let concat_name_GB12 =eval(name2+selectedValue[11]);
         let concat_name_PW12 =eval(name3+selectedValue[11]);
         let concat_name_DM12 =eval(name4+selectedValue[11]);
         let concat_name_PROT12 =eval(name5+selectedValue[11]);
+        let concat_name_DBANK12 =eval(name6+selectedValue[11]);
 
 
 
@@ -1420,6 +1621,8 @@ formatNameAccession(cell, row) {
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
         concat_name_PROT6,concat_name_PROT7,concat_name_PROT8,concat_name_PROT9,concat_name_PROT10,concat_name_PROT11,
         concat_name_PROT12);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+        concat_name_DBANK6,concat_name_DBANK7,concat_name_DBANK8,concat_name_DBANK9,concat_name_DBANK10,concat_name_DBANK11,concat_name_DBANK12);
         exportTsv();
 
 
@@ -1431,72 +1634,86 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
         let concat_name_GM8 =eval(name1+selectedValue[7]);
         let concat_name_GB8 =eval(name2+selectedValue[7]);
         let concat_name_PW8 =eval(name3+selectedValue[7]);
         let concat_name_DM8 =eval(name4+selectedValue[7]);
         let concat_name_PROT8 =eval(name5+selectedValue[7]);
+        let concat_name_DBANK8 =eval(name6+selectedValue[7]);
         let concat_name_GM9 =eval(name1+selectedValue[8]);
         let concat_name_GB9 =eval(name2+selectedValue[8]);
         let concat_name_PW9 =eval(name3+selectedValue[8]);
         let concat_name_DM9 =eval(name4+selectedValue[8]);
         let concat_name_PROT9 =eval(name5+selectedValue[8]);
+        let concat_name_DBANK9 =eval(name6+selectedValue[8]);
         let concat_name_GM10 =eval(name1+selectedValue[9]);
         let concat_name_GB10 =eval(name2+selectedValue[9]);
         let concat_name_PW10 =eval(name3+selectedValue[9]);
         let concat_name_DM10 =eval(name4+selectedValue[9]);
         let concat_name_PROT10 =eval(name5+selectedValue[9]);
+        let concat_name_DBANK10 =eval(name6+selectedValue[9]);
         let concat_name_GM11 =eval(name1+selectedValue[10]);
         let concat_name_GB11 =eval(name2+selectedValue[10]);
         let concat_name_PW11 =eval(name3+selectedValue[10]);
         let concat_name_DM11 =eval(name4+selectedValue[10]);
         let concat_name_PROT11 =eval(name5+selectedValue[10]);
+        let concat_name_DBANK11 =eval(name6+selectedValue[10]);
         let concat_name_GM12 =eval(name1+selectedValue[11]);
         let concat_name_GB12 =eval(name2+selectedValue[11]);
         let concat_name_PW12 =eval(name3+selectedValue[11]);
         let concat_name_DM12 =eval(name4+selectedValue[11]);
         let concat_name_PROT12 =eval(name5+selectedValue[11]);
+        let concat_name_DBANK12 =eval(name6+selectedValue[11]);
         let concat_name_GM13 =eval(name1+selectedValue[12]);
         let concat_name_GB13 =eval(name2+selectedValue[12]);
         let concat_name_PW13 =eval(name3+selectedValue[12]);
         let concat_name_DM13 =eval(name4+selectedValue[12]);
         let concat_name_PROT13 =eval(name5+selectedValue[12]);
-        exportTsv();
+        let concat_name_DBANK13 =eval(name6+selectedValue[12]);
+
 
 
 
@@ -1511,7 +1728,9 @@ formatNameAccession(cell, row) {
       value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
       concat_name_PROT6,concat_name_PROT7,concat_name_PROT8,concat_name_PROT9,concat_name_PROT10,concat_name_PROT11,
       concat_name_PROT12,concat_name_PROT13);
-
+      value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+      concat_name_DBANK6,concat_name_DBANK7,concat_name_DBANK8,concat_name_DBANK9,concat_name_DBANK10,concat_name_DBANK11,concat_name_DBANK12,concat_name_DBANK13);
+      exportTsv();
 
 
       }
@@ -1521,77 +1740,91 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
         let concat_name_GM7 =eval(name1+selectedValue[6]);
         let concat_name_GB7 =eval(name2+selectedValue[6]);
         let concat_name_PW7 =eval(name3+selectedValue[6]);
         let concat_name_DM7 =eval(name4+selectedValue[6]);
         let concat_name_PROT7 =eval(name5+selectedValue[6]);
+        let concat_name_DBANK7 =eval(name6+selectedValue[6]);
         let concat_name_GM8 =eval(name1+selectedValue[7]);
         let concat_name_GB8 =eval(name2+selectedValue[7]);
         let concat_name_PW8 =eval(name3+selectedValue[7]);
         let concat_name_DM8 =eval(name4+selectedValue[7]);
         let concat_name_PROT8 =eval(name5+selectedValue[7]);
+        let concat_name_DBANK8 =eval(name6+selectedValue[7]);
         let concat_name_GM9 =eval(name1+selectedValue[8]);
         let concat_name_GB9 =eval(name2+selectedValue[8]);
         let concat_name_PW9 =eval(name3+selectedValue[8]);
         let concat_name_DM9 =eval(name4+selectedValue[8]);
         let concat_name_PROT9 =eval(name5+selectedValue[8]);
+        let concat_name_DBANK9 =eval(name6+selectedValue[8]);
         let concat_name_GM10 =eval(name1+selectedValue[9]);
         let concat_name_GB10 =eval(name2+selectedValue[9]);
         let concat_name_PW10 =eval(name3+selectedValue[9]);
         let concat_name_DM10 =eval(name4+selectedValue[9]);
         let concat_name_PROT10 =eval(name5+selectedValue[9]);
+        let concat_name_DBANK10 =eval(name6+selectedValue[9]);
         let concat_name_GM11 =eval(name1+selectedValue[10]);
         let concat_name_GB11 =eval(name2+selectedValue[10]);
         let concat_name_PW11 =eval(name3+selectedValue[10]);
         let concat_name_DM11 =eval(name4+selectedValue[10]);
         let concat_name_PROT11 =eval(name5+selectedValue[10]);
+        let concat_name_DBANK11 =eval(name6+selectedValue[10]);
         let concat_name_GM12 =eval(name1+selectedValue[11]);
         let concat_name_GB12 =eval(name2+selectedValue[11]);
         let concat_name_PW12 =eval(name3+selectedValue[11]);
         let concat_name_DM12 =eval(name4+selectedValue[11]);
         let concat_name_PROT12 =eval(name5+selectedValue[11]);
+        let concat_name_DBANK12 =eval(name6+selectedValue[11]);
         let concat_name_GM13 =eval(name1+selectedValue[12]);
         let concat_name_GB13 =eval(name2+selectedValue[12]);
         let concat_name_PW13 =eval(name3+selectedValue[12]);
         let concat_name_DM13 =eval(name4+selectedValue[12]);
         let concat_name_PROT13 =eval(name5+selectedValue[12]);
+        let concat_name_DBANK13 =eval(name6+selectedValue[12]);
         let concat_name_GM14 =eval(name1+selectedValue[13]);
         let concat_name_GB14 =eval(name2+selectedValue[13]);
         let concat_name_PW14 =eval(name3+selectedValue[13]);
         let concat_name_DM14 =eval(name4+selectedValue[13]);
         let concat_name_PROT14 =eval(name5+selectedValue[13]);
-
+        let concat_name_DBANK14 =eval(name6+selectedValue[13]);
 
 
 
@@ -1610,6 +1843,8 @@ formatNameAccession(cell, row) {
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,
         concat_name_PROT6,concat_name_PROT7,concat_name_PROT8,concat_name_PROT9,concat_name_PROT10,concat_name_PROT11,
         concat_name_PROT12,concat_name_PROT13,concat_name_PROT14);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,
+        concat_name_DBANK6,concat_name_DBANK7,concat_name_DBANK8,concat_name_DBANK9,concat_name_DBANK10,concat_name_DBANK11,concat_name_DBANK12,concat_name_DBANK13,concat_name_DBANK14);
         exportTsv();
 
 
@@ -1621,6 +1856,8 @@ formatNameAccession(cell, row) {
       value_DM=_.union(DM_a,DM_b,DM_c,DM_d,DM_e,DM_f,DM_g,DM_h,DM_i,DM_j,DM_k,DM_l,DM_m,DM_n,DM_o);
       value_PROT=_.union(PROT_a,PROT_b,PROT_c,PROT_d,PROT_e,PROT_f,PROT_g,PROT_h,PROT_i,PROT_j,PROT_k,PROT_l,PROT_m,PROT_n,
       PROT_o);
+      value_DBANK=_.union(DBANK_a,DBANK_b,DBANK_c,DBANK_d,DBANK_e,DBANK_f,DBANK_g,DBANK_h,DBANK_i,DBANK_j,DBANK_k,DBANK_l,DBANK_m,DBANK_n,
+      DBANK_o);
       exportTsv();
     }
 
@@ -1787,6 +2024,16 @@ formatNameAccession(cell, row) {
 
                 </BootstrapTable>
 
+                </Tab>
+                <Tab eventKey={6} title="DrugBank">
+                <BootstrapTable   data={ value_DBANK}  trClassName={ trClassFormat } pagination >
+
+                <TableHeaderColumn dataField='idurl' isKey dataFormat={this.formatIdUrl} dataSort filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ID URL</TableHeaderColumn>
+                <TableHeaderColumn dataField='name' dataAlign='center'  >NAME</TableHeaderColumn>
+                <TableHeaderColumn dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
+                <TableHeaderColumn dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
+                <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDrugBank.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                </BootstrapTable>
                 </Tab>
               </Tabs>
 

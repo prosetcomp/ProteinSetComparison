@@ -52,6 +52,7 @@ var resultMolecular;
 var resultBiological;
 var resultPathway;
 var resultDomain;
+var resultDBank;
 
 class ResultPageTwoQuery extends Component {
   constructor(props) {
@@ -72,6 +73,9 @@ class ResultPageTwoQuery extends Component {
     PROT_a:[],
     PROT_b:[],
     PROT_c:[],
+    DBANK_a:[],
+    DBANK_b:[],
+    DBANK_c:[],
     selectedValue:["c"],
     key: 1,
     checked: true,
@@ -81,7 +85,8 @@ class ResultPageTwoQuery extends Component {
     mfaccessionresult:[],
     bpaccessionresult:[],
     pwaccessionresult:[],
-    dmaccessionresult:[]
+    dmaccessionresult:[],
+    dbankaccessionresult:[],
 
   }
     this.options = {
@@ -98,6 +103,7 @@ class ResultPageTwoQuery extends Component {
       this.makeRequestBiological = this.makeRequestBiological.bind(this);
       this.makeRequestPathway = this.makeRequestPathway.bind(this);
       this.makeRequestDomain = this.makeRequestDomain.bind(this);
+      this.makeRequestDrugBank = this.makeRequestDrugBank.bind(this);
       this.openModal = this.openModal.bind(this);
 
 
@@ -127,14 +133,16 @@ class ResultPageTwoQuery extends Component {
          axios.get('http://localhost:9000/protein/gb'),
          axios.get('http://localhost:9000/protein/pw'),
          axios.get('http://localhost:9000/protein/dm'),
-         axios.get('http://localhost:9000/protein/prot')
+         axios.get('http://localhost:9000/protein/prot'),
+         axios.get('http://localhost:9000/protein/dbank')
 
        ]).then(result => {
             this.setState({ GM_a: result[0].data[0],GM_b: result[0].data[1],GM_c: result[0].data[2],
                             GB_a: result[1].data[0],GB_b: result[1].data[1],GB_c: result[1].data[2],
                             PW_a: result[2].data[0],PW_b: result[2].data[1],PW_c: result[2].data[2],
                             DM_a: result[3].data[0],DM_b: result[3].data[1],DM_c: result[3].data[2],
-                            PROT_a: result[4].data[0],PROT_b: result[4].data[1],PROT_c: result[4].data[2]
+                            PROT_a: result[4].data[0],PROT_b: result[4].data[1],PROT_c: result[4].data[2],
+                            DBANK_a:result[5].data[0],DBANK_b: result[5].data[1],DBANK_c: result[5].data[2]
 
 
             });
@@ -293,6 +301,28 @@ _validateFunctionPathway(row) {
      //{this.openModal()}
   }
 
+  //DrugBank
+   buttonFunctionDrugBank(cell, row) {
+        return <label>
+                  <button type="button"
+                          id="validatebutton"
+                          onClick={() => {this._validateFunctionDrugBank(row)}}
+                          className="bbtn btn-primary btn-sm">
+                            Show
+                  </button>
+               </label>
+   }
+
+   _validateFunctionDrugBank(row) {
+      const regex = /(<([^>]+)>)/ig;
+      var numberPattern = /(\d+){5,}/g;
+      const result0 = row.idurl.replace(regex, '');
+
+      resultDBank = result0.match( numberPattern );
+      console.log(resultDBank);
+     {this.makeRequestDrugBank()}
+      //{this.openModal()}
+   }
 
 //Requests for related proteins
 
@@ -363,6 +393,23 @@ axios.post('http://localhost:9000/protein/dmaccession', {
  });
  {this.openModal()}
  }
+
+ //DrugBank
+  makeRequestDrugBank(){
+  let cookie_value =  Cookies.get('id');
+  axios.defaults.headers.common['Authorization'] = cookie_value;
+  axios.post('http://localhost:9000/protein/dbankaccession', {
+        region:this.state.selectedValue,
+        body:  JSON.parse(JSON.stringify(resultDBank))
+  })
+  .then((results) => {
+    this.setState({dbankaccessionresult:results.data[0]});
+  }).catch(err => {
+
+  });
+  {this.openModal()}
+  }
+
 
 
 openModal(){
@@ -485,7 +532,14 @@ onCloseModal = () => {
       );
       }
 
+      formatIdUrl(cell,row){
+        return (
 
+            <td dangerouslySetInnerHTML={{__html: row.idurl}} />
+
+
+        );
+      }
 
 
 
@@ -614,16 +668,17 @@ div.selectAll("g")
 
 
 
-   const {GM_a,GM_b,GM_c ,GB_a,GB_b,GB_c ,PW_a,PW_b,PW_c ,DM_a,DM_b,DM_c ,PROT_a,PROT_b,PROT_c, selectedValue,key} =this.state;
+   const {GM_a,GM_b,GM_c ,GB_a,GB_b,GB_c ,PW_a,PW_b,PW_c ,DM_a,DM_b,DM_c ,PROT_a,PROT_b,PROT_c,DBANK_a,DBANK_b,DBANK_c, selectedValue,key} =this.state;
    const {checked,preview} = this.state;
 
-  const {open,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult } = this.state;
+  const {open,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult,dbankaccessionresult } = this.state;
 
 let value_GM =GM_c;
 let value_GB=GB_c;
 let value_PW=PW_c;
 let value_DM=DM_c;
 let value_PROT=PROT_c;
+let value_DBANK = DBANK_c;
 var tsvData="";
 
 
@@ -642,6 +697,10 @@ let data ;
 
     else if(key==5){
       data = dmaccessionresult;
+    }
+
+    else if(key==6){
+      data = dbankaccessionresult;
     }
 
     function exportTsv(){
@@ -701,6 +760,18 @@ let data ;
             }
 
         }
+        else if(key===6){
+          tsvData= JSON.parse(JSON.stringify(value_DBANK));
+          //console.log(DM_a);
+          for(var i in tsvData){
+              tsvData[i].idurl= tsvData[i].idurl.replace(/(<([^>]+)>)/ig, '')
+
+
+
+
+            }
+
+        }
 
       }
 
@@ -711,6 +782,7 @@ let data ;
       value_PW=[];
       value_DM=[];
       value_PROT=[];
+      value_DBANK = [];
 
     }
     else if(selectedValue.length===1){
@@ -720,16 +792,19 @@ let data ;
       let name3="PW_"
       let name4="DM_"
       let name5="PROT_"
+      let name6="DBANK_"
       let concat_name_GM =name1+selectedValue[0];
       let concat_name_GB =name2+selectedValue[0];
       let concat_name_PW =name3+selectedValue[0];
       let concat_name_DM =name4+selectedValue[0];
       let concat_name_PROT =name5+selectedValue[0];
+      let concat_name_DBANK =name6+selectedValue[0];
       value_GM=eval(concat_name_GM);
       value_GB=eval(concat_name_GB);
       value_PW=eval(concat_name_PW);
       value_DM=eval(concat_name_DM);
       value_PROT=eval(concat_name_PROT);
+      value_DBANK=eval(concat_name_DBANK);
       exportTsv();
 
 
@@ -741,6 +816,7 @@ let data ;
         value_PW=_.union(PW_a,PW_b);
         value_DM=_.union(DM_a,DM_b);
         value_PROT=_.union(PROT_a,PROT_b);
+        value_DBANK=_.union(DBANK_a,DBANK_b);
         exportTsv();
         //console.log(value_GM);
       }
@@ -750,6 +826,7 @@ let data ;
         value_PW=_.union(PW_a,PW_c);
         value_DM=_.union(DM_a,DM_c);
         value_PROT=_.union(PROT_a,PROT_c);
+        value_DBANK=_.union(DBANK_a,DBANK_c);
         exportTsv();
         //console.log(value_GM);
       }
@@ -759,6 +836,7 @@ let data ;
         value_PW=_.union(PW_b,PW_c);
         value_DM=_.union(DM_b,DM_c);
         value_PROT=_.union(PROT_b,PROT_c);
+        value_DBANK=_.union(DBANK_b,DBANK_c);
         exportTsv();
         //console.log(value_GM);
       }
@@ -772,6 +850,7 @@ let data ;
         value_PW=_.union(PW_a,PW_b,PW_c);
         value_DM=_.union(DM_a,DM_b,DM_c);
         value_PROT=_.union(PROT_a,PROT_b,PROT_b);
+        value_DBANK=_.union(DBANK_a,DBANK_b,DBANK_c);
         exportTsv();
 
       }
@@ -851,6 +930,19 @@ let checkBoxComponent="";
             { sets: [0], "label": DM_b.length+ '' , size: 175},
             { sets: [1], "label": DM_a.length+ '' , size: 175},
             { sets: [0, 1], "label": DM_c.length+ '' , size: 75 }
+          ];
+
+
+          drawUpset(sets)
+
+
+          }
+          else if(key===6){
+
+          const sets = [
+            { sets: [0], "label": DBANK_b.length+ '' , size: 175},
+            { sets: [1], "label": DBANK_a.length+ '' , size: 175},
+            { sets: [0, 1], "label": DBANK_c.length+ '' , size: 75 }
           ];
 
 
@@ -942,6 +1034,21 @@ let checkBoxComponent="";
         { sets: [0], "label": DM_b.length+ '' , size: 175},
         { sets: [1], "label": DM_a.length+ '' , size: 175},
         { sets: [0, 1], "label": DM_c.length+ '' , size: 75 }
+      ];
+      const chart = VennDiagram().width(450).height(350);
+
+      const div = select(this.diagram);
+      div.datum(sets).call(chart);
+      mouseClick(div);
+
+
+      }
+      else if(key===6){
+
+      const sets = [
+        { sets: [0], "label": DBANK_b.length+ '' , size: 175},
+        { sets: [1], "label": DBANK_a.length+ '' , size: 175},
+        { sets: [0, 1], "label": DBANK_c.length+ '' , size: 75 }
       ];
       const chart = VennDiagram().width(450).height(350);
 
@@ -1167,6 +1274,17 @@ let checkBoxComponent="";
 
                 </BootstrapTable>
 
+                </Tab>
+
+                <Tab eventKey={6} title="DrugBank">
+                <BootstrapTable   data={ value_DBANK}  trClassName={ trClassFormat } pagination >
+
+                <TableHeaderColumn dataField='idurl' isKey dataFormat={this.formatIdUrl} dataSort filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ID URL</TableHeaderColumn>
+                <TableHeaderColumn dataField='name' dataAlign='center'  >NAME</TableHeaderColumn>
+                <TableHeaderColumn dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
+                <TableHeaderColumn dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
+                <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDrugBank.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                </BootstrapTable>
                 </Tab>
               </Tabs>
 

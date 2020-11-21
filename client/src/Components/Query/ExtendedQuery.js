@@ -91,7 +91,7 @@ class ExtendedQuery extends Component {
   render() {
 
     const number = 5;
-    console.log(number);
+    //console.log(number);
     return (
       <div className="warnPage">
       <p className="warningText">Sorry one of your query is extended 5000 result. So you will direct to home page!</p>

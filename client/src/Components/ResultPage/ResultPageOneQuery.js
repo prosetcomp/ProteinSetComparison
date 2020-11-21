@@ -50,6 +50,7 @@ var resultMolecular;
 var resultBiological;
 var resultPathway;
 var resultDomain;
+var resultDBank;
 
 class ResultPageOneQuery extends Component {
   constructor(props) {
@@ -60,6 +61,7 @@ class ResultPageOneQuery extends Component {
       PW_a: [],
       DM_a: [],
       PROT_a:[],
+      DBANK_a:[],
       selectedValue:["a"],
       key: 1,
       checked: true,
@@ -70,7 +72,9 @@ class ResultPageOneQuery extends Component {
       mfaccessionresult:[],
       bpaccessionresult:[],
       pwaccessionresult:[],
-      dmaccessionresult:[]
+      dmaccessionresult:[],
+      dbankaccessionresult:[],
+
 
     }
     this.options = {
@@ -86,6 +90,7 @@ class ResultPageOneQuery extends Component {
     this.makeRequestBiological = this.makeRequestBiological.bind(this);
     this.makeRequestPathway = this.makeRequestPathway.bind(this);
     this.makeRequestDomain = this.makeRequestDomain.bind(this);
+    this.makeRequestDrugBank = this.makeRequestDrugBank.bind(this);
     this.openModal = this.openModal.bind(this);
 
   }
@@ -111,17 +116,15 @@ Promise.all([
      axios.get('http://localhost:9000/protein/gb'),
      axios.get('http://localhost:9000/protein/pw'),
      axios.get('http://localhost:9000/protein/dm'),
-     axios.get('http://localhost:9000/protein/prot')
+     axios.get('http://localhost:9000/protein/prot'),
+     axios.get('http://localhost:9000/protein/dbank')
    ])
    // use arrow function to avoid loosing context
    // BTW you don't need to use axios.spread with ES2015 destructuring
-   .then(([resultResponse, result2Response,result3Response, result4Response,result5Response]) => {
-           this.setState({GM_a: resultResponse.data[0], GB_a : result2Response.data[0],PW_a: result3Response.data[0], DM_a : result4Response.data[0],PROT_a:result5Response.data[0]});
-           console.log(resultResponse.data[0]);
-           console.log(result2Response.data[0]);
-           console.log(result3Response.data[0]);
-           console.log(result4Response.data[0]);
-           console.log(result5Response.data[0]);
+   .then(([resultResponse, result2Response,result3Response, result4Response,result5Response,result6Response]) => {
+           this.setState({GM_a: resultResponse.data[0], GB_a : result2Response.data[0],PW_a: result3Response.data[0], DM_a : result4Response.data[0],PROT_a:result5Response.data[0],DBANK_a:result6Response.data[0]});
+
+
 
        });
   }
@@ -260,12 +263,35 @@ closeConnection(){
       const regex = /(<([^>]+)>)/ig;
       var numberPattern = /(\d+){5,}/g;
       const result0 = row.ipr.replace(regex, '');
+
       resultDomain = result0.match( numberPattern );
 
      {this.makeRequestDomain()}
       //{this.openModal()}
    }
 
+   //DrugBank
+    buttonFunctionDrugBank(cell, row) {
+         return <label>
+                   <button type="button"
+                           id="validatebutton"
+                           onClick={() => {this._validateFunctionDrugBank(row)}}
+                           className="bbtn btn-primary btn-sm">
+                             Show
+                   </button>
+                </label>
+    }
+
+    _validateFunctionDrugBank(row) {
+       const regex = /(<([^>]+)>)/ig;
+       var numberPattern = /(\d+){5,}/g;
+       const result0 = row.idurl.replace(regex, '');
+
+       resultDBank = result0.match( numberPattern );
+      
+      {this.makeRequestDrugBank()}
+       //{this.openModal()}
+    }
 
 //Requests for related proteins
 
@@ -332,6 +358,22 @@ closeConnection(){
   });
   {this.openModal()}
   }
+
+  //DrugBank
+   makeRequestDrugBank(){
+   let cookie_value =  Cookies.get('id');
+   axios.defaults.headers.common['Authorization'] = cookie_value;
+   axios.post('http://localhost:9000/protein/dbankaccession', {
+         region:this.state.selectedValue,
+         body:  JSON.parse(JSON.stringify(resultDBank))
+   })
+   .then((results) => {
+     this.setState({dbankaccessionresult:results.data[0]});
+   }).catch(err => {
+
+   });
+   {this.openModal()}
+   }
 
 
 openModal(){
@@ -450,12 +492,19 @@ openModal(){
        );
        }
 
+      formatIdUrl(cell,row){
+        return (
+
+            <td dangerouslySetInnerHTML={{__html: row.idurl}} />
+
+
+        );
+      }
+
     /*
       isExpandableRow(row) {
          return true;
         }
-
-
         expandComponent(row) {
           return (
            <BootstrapTable  data={this.value_PROT} trClassName={ this.trClassFormat }  options={this.options} pagination >
@@ -466,8 +515,6 @@ openModal(){
                 <TableHeaderColumn width={'15%'}  dataField='is_reviewed'  dataAlign='center' >IS REVIEWED</TableHeaderColumn>
                 <TableHeaderColumn  dataAlign='center' dataFormat={this.formatLinksProtein}>LINKS</TableHeaderColumn>
             </BootstrapTable>
-
-
           );
         }
    */
@@ -601,7 +648,7 @@ openModal(){
 
 
     }
-const {GM_a,GB_a,PW_a,DM_a,PROT_a, selectedValue,key,checked,preview,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult} =this.state;
+const {GM_a,GB_a,PW_a,DM_a,PROT_a,DBANK_a, selectedValue,key,checked,preview,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult,dbankaccessionresult} =this.state;
 const { open,visible } = this.state;
 //console.log(GM_a[0]);
 let value_GM =GM_a;
@@ -609,6 +656,7 @@ let value_GB=GB_a;
 let value_PW=PW_a;
 let value_DM=DM_a;
 let value_PROT=PROT_a;
+let value_DBANK = DBANK_a;
 var tsvData="";
 let new_Pathway_Prot =[] ;
 const regex = /(<([^>]+)>)/ig;
@@ -630,6 +678,9 @@ let data ;
       data = dmaccessionresult;
     }
 
+    else if(key==6){
+      data = dbankaccessionresult;
+    }
 
 
 
@@ -711,6 +762,17 @@ let data ;
 
 
                 }
+                else if(key===6){
+
+               const sets = [
+                 { sets: [0],"label": DBANK_a.length+ '' , size: DBANK_a.length},
+               ];
+
+
+               drawUpset(sets)
+
+
+               }
               }
           else{
             checkBoxComponent =
@@ -791,6 +853,19 @@ let data ;
 
 
             }
+            else if(key===6){
+
+            const sets = [
+              { sets: [0],"label": DBANK_a.length+ '' , size: 175},
+            ];
+            const chart = VennDiagram().width(450).height(350);
+
+            const div = select(this.diagram);
+            div.datum(sets).call(chart);
+            mouseClick(div);
+
+
+            }
           }
 
       if(key===1){
@@ -853,12 +928,26 @@ let data ;
 
       }
 
+      else if(key===6){
+        tsvData= JSON.parse(JSON.stringify(DBANK_a));
+        //console.log(DM_a);
+        for(var i in tsvData){
+            tsvData[i].idurl= tsvData[i].idurl.replace(/(<([^>]+)>)/ig, '')
+
+
+
+
+          }
+
+      }
+
       if(selectedValue.length===0){
         value_GM=[];
         value_GB=[];
         value_PW=[];
         value_DM=[];
         value_PROT=[];
+        value_DBANK = [];
 
       }
       function trClassFormat(rowData, rIndex) {
@@ -1073,6 +1162,17 @@ let data ;
                   </BootstrapTable>
 
                   </Tab>
+                  <Tab eventKey={6} title="DrugBank">
+                  <BootstrapTable   data={ value_DBANK}  trClassName={ trClassFormat } pagination >
+
+                  <TableHeaderColumn dataField='idurl' isKey dataFormat={this.formatIdUrl} dataSort filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ID URL</TableHeaderColumn>
+                  <TableHeaderColumn dataField='name' dataAlign='center'  >NAME</TableHeaderColumn>
+                  <TableHeaderColumn dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
+                  <TableHeaderColumn dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
+                  <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDrugBank.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                  </BootstrapTable>
+                  </Tab>
+
               </Tabs>
 
 

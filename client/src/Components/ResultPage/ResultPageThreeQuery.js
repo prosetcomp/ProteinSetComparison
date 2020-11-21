@@ -51,6 +51,7 @@ var resultMolecular;
 var resultBiological;
 var resultPathway;
 var resultDomain;
+var resultDBank;
 
 class ResultPageThreeQuery extends Component {
   constructor(props) {
@@ -91,6 +92,13 @@ class ResultPageThreeQuery extends Component {
     PROT_e: [],
     PROT_f: [],
     PROT_g: [],
+    DBANK_a: [],
+    DBANK_b: [],
+    DBANK_c: [],
+    DBANK_d: [],
+    DBANK_e: [],
+    DBANK_f: [],
+    DBANK_g: [],
     selectedValue:["g"],
     key: 1,
     checked: true,
@@ -99,7 +107,8 @@ class ResultPageThreeQuery extends Component {
     mfaccessionresult:[],
     bpaccessionresult:[],
     pwaccessionresult:[],
-    dmaccessionresult:[]
+    dmaccessionresult:[],
+    dbankaccessionresult:[],
 
 
     }
@@ -115,6 +124,7 @@ class ResultPageThreeQuery extends Component {
       this.makeRequestBiological = this.makeRequestBiological.bind(this);
       this.makeRequestPathway = this.makeRequestPathway.bind(this);
       this.makeRequestDomain = this.makeRequestDomain.bind(this);
+      this.makeRequestDrugBank = this.makeRequestDrugBank.bind(this);
       this.openModal = this.openModal.bind(this);
 
   }
@@ -136,7 +146,8 @@ class ResultPageThreeQuery extends Component {
          axios.get('http://localhost:9000/protein/gb'),
          axios.get('http://localhost:9000/protein/pw'),
          axios.get('http://localhost:9000/protein/dm'),
-         axios.get('http://localhost:9000/protein/prot')
+         axios.get('http://localhost:9000/protein/prot'),
+         axios.get('http://localhost:9000/protein/dbank')
        ]).then(result => {
             this.setState({
           GM_a: result[0].data[0],GM_b: result[0].data[1],GM_c: result[0].data[2],
@@ -148,10 +159,13 @@ class ResultPageThreeQuery extends Component {
           DM_a: result[3].data[0],DM_b: result[3].data[1],DM_c: result[3].data[2],DM_d: result[3].data[3],
           DM_e: result[3].data[4],DM_f: result[3].data[5],DM_g: result[3].data[6],
           PROT_a: result[4].data[0],PROT_b: result[4].data[1],PROT_c: result[4].data[2],PROT_d: result[4].data[3],
-          PROT_e: result[4].data[4],PROT_f: result[4].data[5],PROT_g: result[4].data[6]
+          PROT_e: result[4].data[4],PROT_f: result[4].data[5],PROT_g: result[4].data[6],
+          DBANK_a: result[5].data[0],DBANK_b: result[5].data[1],DBANK_c: result[5].data[2],DBANK_d: result[5].data[3],
+          DBANK_e: result[5].data[4],DBANK_f: result[5].data[5],DBANK_g: result[5].data[6]
 
 
             });
+            //console.log(result[5].data);
         });
 
 }
@@ -266,6 +280,29 @@ _validateFunctionPathway(row) {
     //{this.openModal()}
  }
 
+ //DrugBank
+  buttonFunctionDrugBank(cell, row) {
+       return <label>
+                 <button type="button"
+                         id="validatebutton"
+                         onClick={() => {this._validateFunctionDrugBank(row)}}
+                         className="bbtn btn-primary btn-sm">
+                           Show
+                 </button>
+              </label>
+  }
+
+  _validateFunctionDrugBank(row) {
+     const regex = /(<([^>]+)>)/ig;
+     var numberPattern = /(\d+){5,}/g;
+     const result0 = row.idurl.replace(regex, '');
+
+     resultDBank = result0.match( numberPattern );
+    
+    {this.makeRequestDrugBank()}
+     //{this.openModal()}
+  }
+
 
 //Requests for related proteins
 
@@ -332,6 +369,22 @@ axios.post('http://localhost:9000/protein/dmaccession', {
 });
 {this.openModal()}
 }
+
+//DrugBank
+ makeRequestDrugBank(){
+ let cookie_value =  Cookies.get('id');
+ axios.defaults.headers.common['Authorization'] = cookie_value;
+ axios.post('http://localhost:9000/protein/dbankaccession', {
+       region:this.state.selectedValue,
+       body:  JSON.parse(JSON.stringify(resultDBank))
+ })
+ .then((results) => {
+   this.setState({dbankaccessionresult:results.data[0]});
+ }).catch(err => {
+
+ });
+ {this.openModal()}
+ }
 
 
 openModal(){
@@ -470,7 +523,14 @@ formatNameAccession(cell, row) {
         </div>
      );
      }
+   formatIdUrl(cell,row){
+     return (
 
+         <td dangerouslySetInnerHTML={{__html: row.idurl}} />
+
+
+     );
+   }
 
   render() {
     function drawUpset(sets){
@@ -606,14 +666,15 @@ formatNameAccession(cell, row) {
           GB_a,GB_b,GB_c ,GB_d,GB_e,GB_f ,GB_g,
           PW_a,PW_b,PW_c ,PW_d,PW_e,PW_f ,PW_g,
           DM_a,DM_b,DM_c ,DM_d,DM_e,DM_f,DM_g,
-          PROT_a,PROT_b,PROT_c ,PROT_d,PROT_e,PROT_f,PROT_g,selectedValue,key,checked,preview} =this.state;
-   const {open,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult } = this.state;
+          PROT_a,PROT_b,PROT_c ,PROT_d,PROT_e,PROT_f,PROT_g,DBANK_a,DBANK_b,DBANK_c,DBANK_d,DBANK_e,DBANK_f,DBANK_g,selectedValue,key,checked,preview} =this.state;
+   const {open,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult,dbankaccessionresult } = this.state;
 
       let value_GM =GM_g;
       let value_GB=GB_g;
       let value_PW=PW_g;
       let value_DM=DM_g;
       let value_PROT=PROT_g;
+      let value_DBANK = DBANK_g;
       var tsvData="";
       let data ;
       if(key==2){
@@ -630,7 +691,9 @@ formatNameAccession(cell, row) {
       else if(key==5){
         data = dmaccessionresult;
       }
-
+      else if(key==6){
+        data = dbankaccessionresult;
+      }
 
 
       function exportTsv(){
@@ -689,6 +752,15 @@ formatNameAccession(cell, row) {
             }
 
         }
+        else if(key===6){
+          tsvData= JSON.parse(JSON.stringify(value_DBANK));
+          //console.log(DM_a);
+          for(var i in tsvData){
+              tsvData[i].idurl= tsvData[i].idurl.replace(/(<([^>]+)>)/ig, '')
+          }
+
+        }
+
 
 
       }
@@ -790,6 +862,24 @@ formatNameAccession(cell, row) {
                       {"sets": [0, 2], "label":DM_e.length+'', "size": 25},
                       {"sets": [1, 2], "label":DM_c.length+'', "size": 25},
                       {"sets": [0, 1, 2], "label":DM_g.length+'', "size":5},
+                    ];
+
+
+                    drawUpset(sets)
+
+
+                    }
+
+                    else if(key===6){
+
+                    const sets = [
+                      {"sets": [0], "label": DBANK_d.length+'', "size": 75},
+                      {"sets": [1], "label": DBANK_b.length+'', "size": 75},
+                      {"sets": [2], "label": DBANK_a.length+'', "size": 75},
+                      {"sets": [0, 1], "label":DBANK_f.length+'', "size": 25},
+                      {"sets": [0, 2], "label":DBANK_e.length+'', "size": 25},
+                      {"sets": [1, 2], "label":DBANK_c.length+'', "size": 25},
+                      {"sets": [0, 1, 2], "label":DBANK_g.length+'', "size":5},
                     ];
 
 
@@ -913,6 +1003,26 @@ formatNameAccession(cell, row) {
 
 
                 }
+
+                else if(key===6){
+
+                const sets = [
+                  {"sets": [0], "label": DBANK_d.length+'', "size": 75},
+                  {"sets": [1], "label": DBANK_b.length+'', "size": 75},
+                  {"sets": [2], "label": DBANK_a.length+'', "size": 75},
+                  {"sets": [0, 1], "label":DBANK_f.length+'', "size": 25},
+                  {"sets": [0, 2], "label":DBANK_e.length+'', "size": 25},
+                  {"sets": [1, 2], "label":DBANK_c.length+'', "size": 25},
+                  {"sets": [0, 1, 2], "label":DBANK_g.length+'', "size":5},
+                ];
+                const chart = VennDiagram().width(450).height(350);
+
+                const div = select(this.diagram);
+                div.datum(sets).call(chart);
+                mouseClick(div);
+
+
+                }
               }
 
 
@@ -922,6 +1032,7 @@ formatNameAccession(cell, row) {
         value_PW=[];
         value_DM=[];
         value_PROT=[];
+        value_DBANK = [];
       }
       else if(selectedValue.length===1){
         let name1="GM_"
@@ -929,16 +1040,19 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM =name1+selectedValue[0];
         let concat_name_GB =name2+selectedValue[0];
         let concat_name_PW =name3+selectedValue[0];
         let concat_name_DM =name4+selectedValue[0];
         let concat_name_PROT =name5+selectedValue[0];
+        let concat_name_DBANK =name6+selectedValue[0];
         value_GM=eval(concat_name_GM);
         value_GB=eval(concat_name_GB);
         value_PW=eval(concat_name_PW);
         value_DM=eval(concat_name_DM);
         value_PROT=eval(concat_name_PROT);
+        value_DBANK=eval(concat_name_DBANK);
         exportTsv();
 
 }
@@ -948,21 +1062,25 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         value_GM=_.union(concat_name_GM1,concat_name_GM2);
         value_GB=_.union(concat_name_GB1,concat_name_GB2);
         value_PW=_.union(concat_name_PW1,concat_name_PW2);
         value_DM=_.union(concat_name_DM1,concat_name_DM2);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2);
         exportTsv();
 
 
@@ -973,27 +1091,32 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
 
         value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3);
         value_GB=_.union(concat_name_GB1,concat_name_GB2,concat_name_GB3);
         value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3);
         value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3);
         exportTsv();
 
 
@@ -1005,32 +1128,38 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
 
         value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3,concat_name_GM4);
         value_GB=_.union(concat_name_GB1,concat_name_GB2,concat_name_GB3,concat_name_GB4);
         value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3,concat_name_PW4);
         value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3,concat_name_DM4);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4);
         exportTsv();
 
 
@@ -1042,31 +1171,37 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
 
 
         value_GM=_.union(concat_name_GM1,concat_name_GM2,concat_name_GM3,concat_name_GM4,concat_name_GM5);
@@ -1074,6 +1209,7 @@ formatNameAccession(cell, row) {
         value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3,concat_name_PW4,concat_name_PW5);
         value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3,concat_name_DM4,concat_name_DM5);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5);
         exportTsv();
 
 
@@ -1085,36 +1221,43 @@ formatNameAccession(cell, row) {
         let name3="PW_"
         let name4="DM_"
         let name5= "PROT_"
+        let name6= "DBANK_"
         let concat_name_GM1 =eval(name1+selectedValue[0]);
         let concat_name_GB1 =eval(name2+selectedValue[0]);
         let concat_name_PW1 =eval(name3+selectedValue[0]);
         let concat_name_DM1 =eval(name4+selectedValue[0]);
         let concat_name_PROT1 =eval(name5+selectedValue[0]);
+        let concat_name_DBANK1 =eval(name6+selectedValue[0]);
         let concat_name_GM2 =eval(name1+selectedValue[1]);
         let concat_name_GB2 =eval(name2+selectedValue[1]);
         let concat_name_PW2 =eval(name3+selectedValue[1]);
         let concat_name_DM2 =eval(name4+selectedValue[1]);
         let concat_name_PROT2 =eval(name5+selectedValue[1]);
+        let concat_name_DBANK2 =eval(name6+selectedValue[1]);
         let concat_name_GM3 =eval(name1+selectedValue[2]);
         let concat_name_GB3 =eval(name2+selectedValue[2]);
         let concat_name_PW3 =eval(name3+selectedValue[2]);
         let concat_name_DM3 =eval(name4+selectedValue[2]);
         let concat_name_PROT3 =eval(name5+selectedValue[2]);
+        let concat_name_DBANK3 =eval(name6+selectedValue[2]);
         let concat_name_GM4 =eval(name1+selectedValue[3]);
         let concat_name_GB4 =eval(name2+selectedValue[3]);
         let concat_name_PW4 =eval(name3+selectedValue[3]);
         let concat_name_DM4 =eval(name4+selectedValue[3]);
         let concat_name_PROT4 =eval(name5+selectedValue[3]);
+        let concat_name_DBANK4 =eval(name6+selectedValue[3]);
         let concat_name_GM5 =eval(name1+selectedValue[4]);
         let concat_name_GB5 =eval(name2+selectedValue[4]);
         let concat_name_PW5 =eval(name3+selectedValue[4]);
         let concat_name_DM5 =eval(name4+selectedValue[4]);
         let concat_name_PROT5 =eval(name5+selectedValue[4]);
+        let concat_name_DBANK5 =eval(name6+selectedValue[4]);
         let concat_name_GM6 =eval(name1+selectedValue[5]);
         let concat_name_GB6 =eval(name2+selectedValue[5]);
         let concat_name_PW6 =eval(name3+selectedValue[5]);
         let concat_name_DM6 =eval(name4+selectedValue[5]);
         let concat_name_PROT6 =eval(name5+selectedValue[5]);
+        let concat_name_DBANK6 =eval(name6+selectedValue[5]);
 
 
 
@@ -1124,6 +1267,7 @@ formatNameAccession(cell, row) {
         value_PW=_.union(concat_name_PW1,concat_name_PW2,concat_name_PW3,concat_name_PW4,concat_name_PW5,concat_name_PW6);
         value_DM=_.union(concat_name_DM1,concat_name_DM2,concat_name_DM3,concat_name_DM4,concat_name_DM5,concat_name_DM6);
         value_PROT=_.union(concat_name_PROT1,concat_name_PROT2,concat_name_PROT3,concat_name_PROT4,concat_name_PROT5,concat_name_PROT6);
+        value_DBANK=_.union(concat_name_DBANK1,concat_name_DBANK2,concat_name_DBANK3,concat_name_DBANK4,concat_name_DBANK5,concat_name_DBANK6);
         exportTsv();
 
       }
@@ -1133,6 +1277,7 @@ formatNameAccession(cell, row) {
         value_PW=_.union(PW_a,PW_b,PW_c,PW_d,PW_e,PW_f,PW_g);
         value_DM=_.union(DM_a,DM_b,DM_c,DM_d,DM_e,DM_f,DM_g);
         value_PROT=_.union(PROT_a,PROT_b,PROT_c,PROT_d,PROT_e,PROT_f,PROT_g);
+        value_DBANK=_.union(DBANK_a,DBANK_b,DBANK_c,DBANK_d,DBANK_e,DBANK_f,DBANK_g);
         exportTsv();
 
       }
@@ -1346,6 +1491,18 @@ formatNameAccession(cell, row) {
               </BootstrapTable>
 
               </Tab>
+
+              <Tab eventKey={6} title="DrugBank">
+              <BootstrapTable   data={ value_DBANK}  trClassName={ trClassFormat } pagination >
+
+              <TableHeaderColumn dataField='idurl' isKey dataFormat={this.formatIdUrl} dataSort filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ID URL</TableHeaderColumn>
+              <TableHeaderColumn dataField='name' dataAlign='center'  >NAME</TableHeaderColumn>
+              <TableHeaderColumn dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
+              <TableHeaderColumn dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
+              <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDrugBank.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+              </BootstrapTable>
+              </Tab>
+
       </Tabs>
 
       <Modal open={open} onClose={this.onCloseModal}>

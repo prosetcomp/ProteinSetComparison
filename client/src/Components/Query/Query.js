@@ -323,7 +323,7 @@ changeSelectOptionFile(fileValue){
 
 sendJSON(){ //getting the user data to display on the dashboard
   let cookie_value =  Cookies.get('id');
-  console.log("Cookie Value" ,  cookie_value);
+  //console.log("Cookie Value" ,  cookie_value);
   let axiosConfig = {
 
 //   headers: {Authorization: `${cookie_value}`}

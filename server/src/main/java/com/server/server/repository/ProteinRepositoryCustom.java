@@ -13,11 +13,12 @@ public interface ProteinRepositoryCustom {
 	List<List<HashMap<String,String>>> call_PW_StoredProcedure(Connection connection) throws SQLException;
 	List<List<HashMap<String,String>>> call_DM_StoredProcedure(Connection connection) throws SQLException;
 	List<List<HashMap<String,String>>> call_PROT_StoredProcedure(Connection connection) throws SQLException;	
+    List<List<HashMap<String,String>>> call_DBank_StoredProcedure(Connection connection) throws SQLException;
 	String extendedQueryNumber();
 	List<List<HashMap<String,String>>> PATHWAY_ACCESSION(String sessionID,int ipr_id, List<String> regions) throws SQLException;
 	List<List<HashMap<String,String>>> MOLECULARFUNCTION_ACCESSION(String sessionID,int go_id, List<String> regions) throws SQLException;
 	List<List<HashMap<String,String>>> BIOLOGICALPROCESS_ACCESSION(String sessionID,int go_id, List<String> regions) throws SQLException;
 	List<List<HashMap<String,String>>> DOMAIN_ACCESSION(String sessionID,int ipr, List<String> regions) throws SQLException;
-		
+    List<List<HashMap<String,String>>> DRUGBANK_ACCESSION(String sessionID,int cid, List<String> regions) throws SQLException;
 }
 

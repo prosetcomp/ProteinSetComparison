@@ -50,25 +50,6 @@ public class GENE implements Serializable {
 	
 
 
-/*		
-		
-	public PROTEIN getProtein() {
-		return protein;
-	}
-	public void setProtein(PROTEIN protein) {
-		this.protein =protein;
-	}
-	public int getGENE() {
-		return GENE;
-	}
-
-	public void setGENE(int gENE) {
-		GENE = gENE;
-	}
-
-*/
-
-
 	public int getID() {
 		return ID;
 	}
