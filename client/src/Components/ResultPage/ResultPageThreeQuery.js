@@ -298,7 +298,7 @@ _validateFunctionPathway(row) {
      const result0 = row.idurl.replace(regex, '');
 
      resultDBank = result0.match( numberPattern );
-    
+
     {this.makeRequestDrugBank()}
      //{this.openModal()}
   }
@@ -1497,8 +1497,9 @@ formatNameAccession(cell, row) {
 
               <TableHeaderColumn dataField='idurl' isKey dataFormat={this.formatIdUrl} dataSort filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ID URL</TableHeaderColumn>
               <TableHeaderColumn dataField='name' dataAlign='center'  >NAME</TableHeaderColumn>
-              <TableHeaderColumn dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
-              <TableHeaderColumn dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
+              <TableHeaderColumn width={'15%'} dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
+              <TableHeaderColumn width={'25%'} dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
+              <TableHeaderColumn width={'30%'}dataField='action' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ACTION</TableHeaderColumn>
               <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDrugBank.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
               </BootstrapTable>
               </Tab>

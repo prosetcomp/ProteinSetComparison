@@ -1,11 +1,6 @@
 package com.server.server.service;
 
-import java.sql.CallableStatement;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.io.*;
 import java.util.*;
 import javax.persistence.EntityManager;
@@ -2939,6 +2934,12 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 			dbank_1set_join.setString(1, sessionID);
 			dbank_1set_join.execute();
 			ResultSet rs_dbank_a_join =dbank_1set_join.getResultSet();
+			ResultSetMetaData rsMetaData = rs_dbank_a_join.getMetaData();
+			int count = rsMetaData.getColumnCount();
+			/*
+			for(int i = 1; i<=count; i++) {
+				System.out.println("Column Name = " +rsMetaData.getColumnName(i));
+			}*/
 			while(rs_dbank_a_join.next()) {
 				HashMap<String, String> data = new HashMap<String, String>();
 				data.put("compid", rs_dbank_a_join.getString("COMPID"));
@@ -2946,7 +2947,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_a_join.getString("NAME"));
 				data.put("syn", rs_dbank_a_join.getString("SYN"));
 				data.put("def", rs_dbank_a_join.getString("DEF"));
-				//data.put("action", rs_dbank_a_join.getString("ACTION"));
+				data.put("action", rs_dbank_a_join.getString("ACTION"));
 				result.add(data);
 
 			}
@@ -2969,7 +2970,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_a_join.getString("NAME"));
 				data.put("syn", rs_dbank_a_join.getString("SYN"));
 				data.put("def", rs_dbank_a_join.getString("DEF"));
-				//data.put("action", rs_dbank_a_join.getString("ACTION"));
+				data.put("action", rs_dbank_a_join.getString("ACTION"));
 				result_a.add(data);
 
 			}
@@ -2985,7 +2986,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_b_join.getString("NAME"));
 				data.put("syn", rs_dbank_b_join.getString("SYN"));
 				data.put("def", rs_dbank_b_join.getString("DEF"));
-				//data.put("action", rs_dbank_b_join.getString("ACTION"));
+				data.put("action", rs_dbank_b_join.getString("ACTION"));
 				result_b.add(data);
 			}
 
@@ -3001,7 +3002,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_c_join.getString("NAME"));
 				data.put("syn", rs_dbank_c_join.getString("SYN"));
 				data.put("def", rs_dbank_c_join.getString("DEF"));
-				//data.put("action", rs_dbank_c_join.getString("ACTION"));
+				data.put("action", rs_dbank_c_join.getString("ACTION"));
 				result_c.add(data);
 			}
 
@@ -3033,7 +3034,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_a_join.getString("NAME"));
 				data.put("syn", rs_dbank_a_join.getString("SYN"));
 				data.put("def", rs_dbank_a_join.getString("DEF"));
-				//data.put("action", rs_dbank_a_join.getString("ACTION"));
+				data.put("action", rs_dbank_a_join.getString("ACTION"));
 				result_a.add(data);
 			}
 
@@ -3049,7 +3050,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_b_join.getString("NAME"));
 				data.put("syn", rs_dbank_b_join.getString("SYN"));
 				data.put("def", rs_dbank_b_join.getString("DEF"));
-				//data.put("action", rs_dbank_b_join.getString("ACTION"));
+				data.put("action", rs_dbank_b_join.getString("ACTION"));
 				result_b.add(data);
 			}
 
@@ -3065,7 +3066,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_c_join.getString("NAME"));
 				data.put("syn", rs_dbank_c_join.getString("SYN"));
 				data.put("def", rs_dbank_c_join.getString("DEF"));
-				//data.put("action", rs_dbank_c_join.getString("ACTION"));
+				data.put("action", rs_dbank_c_join.getString("ACTION"));
 				result_c.add(data);
 			}
 
@@ -3081,7 +3082,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_d_join.getString("NAME"));
 				data.put("syn", rs_dbank_d_join.getString("SYN"));
 				data.put("def", rs_dbank_d_join.getString("DEF"));
-				//data.put("action", rs_dbank_d_join.getString("ACTION"));
+				data.put("action", rs_dbank_d_join.getString("ACTION"));
 				result_d.add(data);
 			}
 
@@ -3097,7 +3098,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_e_join.getString("NAME"));
 				data.put("syn", rs_dbank_e_join.getString("SYN"));
 				data.put("def", rs_dbank_e_join.getString("DEF"));
-				//data.put("action", rs_dbank_e_join.getString("ACTION"));
+				data.put("action", rs_dbank_e_join.getString("ACTION"));
 				result_e.add(data);
 			}
 
@@ -3113,7 +3114,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_f_join.getString("NAME"));
 				data.put("syn", rs_dbank_f_join.getString("SYN"));
 				data.put("def", rs_dbank_f_join.getString("DEF"));
-				//data.put("action", rs_dbank_f_join.getString("ACTION"));
+				data.put("action", rs_dbank_f_join.getString("ACTION"));
 				result_f.add(data);
 			}
 
@@ -3129,7 +3130,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_g_join.getString("NAME"));
 				data.put("syn", rs_dbank_g_join.getString("SYN"));
 				data.put("def", rs_dbank_g_join.getString("DEF"));
-				//data.put("action", rs_dbank_g_join.getString("ACTION"));
+				data.put("action", rs_dbank_g_join.getString("ACTION"));
 				result_g.add(data);
 			}
 			result2.add(result_a);
@@ -3170,7 +3171,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_a_join.getString("NAME"));
 				data.put("syn", rs_dbank_a_join.getString("SYN"));
 				data.put("def", rs_dbank_a_join.getString("DEF"));
-				//data.put("action", rs_dbank_a_join.getString("ACTION"));
+				data.put("action", rs_dbank_a_join.getString("ACTION"));
 				result_a.add(data);
 			}
 
@@ -3186,7 +3187,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_b_join.getString("NAME"));
 				data.put("syn", rs_dbank_b_join.getString("SYN"));
 				data.put("def", rs_dbank_b_join.getString("DEF"));
-				//data.put("action", rs_dbank_b_join.getString("ACTION"));
+				data.put("action", rs_dbank_b_join.getString("ACTION"));
 				result_b.add(data);
 			}
 
@@ -3202,7 +3203,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_c_join.getString("NAME"));
 				data.put("syn", rs_dbank_c_join.getString("SYN"));
 				data.put("def", rs_dbank_c_join.getString("DEF"));
-				//data.put("action", rs_dbank_c_join.getString("ACTION"));
+				data.put("action", rs_dbank_c_join.getString("ACTION"));
 				result_c.add(data);
 			}
 
@@ -3218,7 +3219,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_d_join.getString("NAME"));
 				data.put("syn", rs_dbank_d_join.getString("SYN"));
 				data.put("def", rs_dbank_d_join.getString("DEF"));
-				//data.put("action", rs_dbank_d_join.getString("ACTION"));
+				data.put("action", rs_dbank_d_join.getString("ACTION"));
 				result_d.add(data);
 			}
 
@@ -3234,7 +3235,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_e_join.getString("NAME"));
 				data.put("syn", rs_dbank_e_join.getString("SYN"));
 				data.put("def", rs_dbank_e_join.getString("DEF"));
-				//data.put("action", rs_dbank_e_join.getString("ACTION"));
+				data.put("action", rs_dbank_e_join.getString("ACTION"));
 				result_e.add(data);
 			}
 
@@ -3250,7 +3251,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_f_join.getString("NAME"));
 				data.put("syn", rs_dbank_f_join.getString("SYN"));
 				data.put("def", rs_dbank_f_join.getString("DEF"));
-				//data.put("action", rs_dbank_f_join.getString("ACTION"));
+				data.put("action", rs_dbank_f_join.getString("ACTION"));
 				result_f.add(data);
 			}
 
@@ -3266,7 +3267,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_g_join.getString("NAME"));
 				data.put("syn", rs_dbank_g_join.getString("SYN"));
 				data.put("def", rs_dbank_g_join.getString("DEF"));
-				//data.put("action", rs_dbank_g_join.getString("ACTION"));
+				data.put("action", rs_dbank_g_join.getString("ACTION"));
 				result_g.add(data);
 			}
 			//JOIN
@@ -3281,7 +3282,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_h_join.getString("NAME"));
 				data.put("syn", rs_dbank_h_join.getString("SYN"));
 				data.put("def", rs_dbank_h_join.getString("DEF"));
-				//data.put("action", rs_dbank_h_join.getString("ACTION"));
+				data.put("action", rs_dbank_h_join.getString("ACTION"));
 				result_h.add(data);
 			}
 
@@ -3297,7 +3298,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_i_join.getString("NAME"));
 				data.put("syn", rs_dbank_i_join.getString("SYN"));
 				data.put("def", rs_dbank_i_join.getString("DEF"));
-				//data.put("action", rs_dbank_i_join.getString("ACTION"));
+				data.put("action", rs_dbank_i_join.getString("ACTION"));
 				result_i.add(data);
 			}
 
@@ -3313,7 +3314,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_j_join.getString("NAME"));
 				data.put("syn", rs_dbank_j_join.getString("SYN"));
 				data.put("def", rs_dbank_j_join.getString("DEF"));
-				//data.put("action", rs_dbank_j_join.getString("ACTION"));
+				data.put("action", rs_dbank_j_join.getString("ACTION"));
 				result_j.add(data);
 			}
 
@@ -3329,7 +3330,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_k_join.getString("NAME"));
 				data.put("syn", rs_dbank_k_join.getString("SYN"));
 				data.put("def", rs_dbank_k_join.getString("DEF"));
-				//data.put("action", rs_dbank_k_join.getString("ACTION"));
+				data.put("action", rs_dbank_k_join.getString("ACTION"));
 				result_k.add(data);
 			}
 
@@ -3345,7 +3346,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_l_join.getString("NAME"));
 				data.put("syn", rs_dbank_l_join.getString("SYN"));
 				data.put("def", rs_dbank_l_join.getString("DEF"));
-				//data.put("action", rs_dbank_l_join.getString("ACTION"));
+				data.put("action", rs_dbank_l_join.getString("ACTION"));
 				result_l.add(data);
 			}
 
@@ -3361,7 +3362,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_m_join.getString("NAME"));
 				data.put("syn", rs_dbank_m_join.getString("SYN"));
 				data.put("def", rs_dbank_m_join.getString("DEF"));
-				//data.put("action", rs_dbank_m_join.getString("ACTION"));
+				data.put("action", rs_dbank_m_join.getString("ACTION"));
 				result_m.add(data);
 			}
 
@@ -3377,7 +3378,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_n_join.getString("NAME"));
 				data.put("syn", rs_dbank_n_join.getString("SYN"));
 				data.put("def", rs_dbank_n_join.getString("DEF"));
-				//data.put("action", rs_dbank_n_join.getString("ACTION"));
+				data.put("action", rs_dbank_n_join.getString("ACTION"));
 				result_n.add(data);
 			}
 			//JOIN
@@ -3392,7 +3393,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 				data.put("name", rs_dbank_o_join.getString("NAME"));
 				data.put("syn", rs_dbank_o_join.getString("SYN"));
 				data.put("def", rs_dbank_o_join.getString("DEF"));
-				//data.put("action", rs_dbank_o_join.getString("ACTION"));
+				data.put("action", rs_dbank_o_join.getString("ACTION"));
 				result_o.add(data);
 			}
 			result2.add(result_a);
@@ -3843,7 +3844,7 @@ public class ProteinRepositoryImpl implements ProteinRepositoryCustom {
 			
 			//21 
 			public CriteriaQuery searchProteinbyPathwayId (int ID, String SPECIES) {
-				 System.out.println("Species method" + SPECIES);
+				// System.out.println("Species method" + SPECIES);
 				CriteriaBuilder builder = em.getCriteriaBuilder();
 				CriteriaQuery<PROTEIN> crit = builder.createQuery(PROTEIN.class);
 				Root<PROTEIN> protein = crit.from(PROTEIN.class);
