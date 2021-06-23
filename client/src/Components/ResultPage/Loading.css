@@ -1,0 +1,8 @@
+.sweet-loading{
+  display: block;
+  margin: 0 auto;
+  size:100;
+  top: 20%;
+  left: 40%;
+  position:fixed;
+}

@@ -16,6 +16,8 @@ import {CSVLink} from 'react-csv';
 import ReactTextCollapse from 'react-text-collapse';
 import Modal from 'react-responsive-modal';
 import Cookies from 'js-cookie';
+import "react-responsive-modal/styles.css";
+import Loading from './Loading'
 
 
 const TEXT_COLLAPSE_OPTIONS = {
@@ -74,6 +76,8 @@ class ResultPageOneQuery extends Component {
       pwaccessionresult:[],
       dmaccessionresult:[],
       dbankaccessionresult:[],
+      isLoading: true,
+      isUpset:true,
 
 
     }
@@ -97,7 +101,12 @@ class ResultPageOneQuery extends Component {
 
   componentDidMount(){
     this.getAccession();
-
+    /*setTimeout(
+            function() {
+             this.setState({ isLoading: false });
+            }.bind(this),
+           5000
+         );*/
     window.addEventListener("beforeunload", (ev) =>
     {
       //console.log("Leaveeeee!!!!");
@@ -106,6 +115,94 @@ class ResultPageOneQuery extends Component {
         return ev.returnValue = 'Are you sure you want to close?';
     });
 
+  }
+
+  drawUpset(sets){
+      setTimeout(
+            function() {
+             this.setState({ isUpset: false });
+            }.bind(this),
+           1000
+         );
+        d3.select("body").select("#upset").selectAll("*").remove();
+        var rows = sets.length;
+        var cols = 0;
+        var assigned = {};
+        var lines = {};
+
+        sets.forEach(function (set) {
+          if(set.sets.length === 1) { cols++; }
+        });
+
+        for(var i=0; i<rows; i++) {
+          if(sets[i].sets.length === 1) { assigned[sets[i].sets[0]+"_"+sets[i].sets[0]] = "assigned"; }
+          else {
+            sets[i].sets.forEach(function (q) {
+              assigned[i+"_"+q] = "assigned";
+            });
+
+            for(var j=0; j<cols; j++) {
+              if(sets[i].sets.length < cols) { lines[i] = {start: sets[i].sets[0], end: sets[i].sets[sets[i].sets.length - 1]}; }
+              else { lines[i] = {start: 0, end: cols-1}; }
+            }
+          }
+        }
+
+
+        // chart config DEFAULTS
+        var cx = 15;
+        var cy = 15;
+        var r = 10;
+        var gap = 2*cx;
+        var rowWidth = cx+((cols+2)*gap);
+        var rowHeight = 2*cy;
+        var rowPadding = r/2;
+
+        var wrapper = d3.select("body").select("#upset");
+
+        for(i=0; i<rows; i++) {
+          var row = wrapper.append("div")
+                    .style("width", rowWidth+"px")
+                    .style("height", rowHeight+"px")
+                    .style("padding", rowPadding+"px")
+                    //.style("background-color", function() {if (i%2==0) { return "#d3d3d3"; }})
+                    .attr("id", "row"+i)
+                  .append("svg")
+                    .attr("width", rowWidth)
+                    .attr("height", rowHeight);
+
+          for(j=0; j<cols; j++) {
+            var key1 = i+"_"+j;
+
+            if(sets[i].sets.length > 1) {
+              var x1 = (lines[i].start > 0)?cx + (lines[i].start * gap):cx;
+              var x2 = x1 + ((lines[i].end - lines[i].start) * gap);
+
+
+              row.append("line")
+                .attr("x1", x1)
+                .attr("y1", cy)
+                .attr("x2", x2)
+                .attr("y2", cy);
+            }
+
+            row.append("circle")
+              .attr("cx", cx+j*gap)
+              .attr("cy", cy)
+              .attr("r", r)
+              .attr("class", assigned[key1]?assigned[key1]:"not-assigned");
+          }
+
+          row.append("text")
+            .attr("x", cx+cols*gap)
+            .attr("y", cy+rowPadding)
+            .text(sets[i].size)
+            .attr("font-family", "sans-serif")
+            .attr("font-size", "15px");
+
+
+
+        }
   }
 
   getAccession(){
@@ -126,7 +223,10 @@ Promise.all([
 
 
 
-       });
+       })
+  .then(response => {
+        this.setState({ isLoading: false });
+      });
   }
 closeConnection(){
 
@@ -524,90 +624,7 @@ openModal(){
   render() {
 
 
-    function drawUpset(sets){
-          d3.select("body").select("#upset").selectAll("*").remove();
-    			var rows = sets.length;
-    			var cols = 0;
-    			var assigned = {};
-    			var lines = {};
 
-    			sets.forEach(function (set) {
-    				if(set.sets.length === 1) { cols++; }
-    			});
-    			// console.log(rows);
-    			// console.log(cols);
-
-    			for(var i=0; i<rows; i++) {
-    				if(sets[i].sets.length === 1) { assigned[sets[i].sets[0]+"_"+sets[i].sets[0]] = "assigned"; }
-    				else {
-    					sets[i].sets.forEach(function (q) {
-    						assigned[i+"_"+q] = "assigned";
-    					});
-
-    					for(var j=0; j<cols; j++) {
-    						if(sets[i].sets.length < cols) { lines[i] = {start: sets[i].sets[0], end: sets[i].sets[sets[i].sets.length - 1]}; }
-    						else { lines[i] = {start: 0, end: cols-1}; }
-    					}
-    				}
-    			}
-    			// console.log("Assigned", assigned);
-    			// console.log("Lines", lines);
-
-    			// chart config DEFAULTS
-    			var cx = 15;
-    			var cy = 15;
-    			var r = 10;
-    			var gap = 2*cx;
-    			var rowWidth = cx+((cols+2)*gap);
-    			var rowHeight = 2*cy;
-    			var rowPadding = r/2;
-
-    			var wrapper = d3.select("body").select("#upset");
-
-    			for(i=0; i<rows; i++) {
-    				var row = wrapper.append("div")
-    									.style("width", rowWidth+"px")
-    									.style("height", rowHeight+"px")
-    									.style("padding", rowPadding+"px")
-    									//.style("background-color", function() {if (i%2==0) { return "#d3d3d3"; }})
-    									.attr("id", "row"+i)
-    								.append("svg")
-    									.attr("width", rowWidth)
-    									.attr("height", rowHeight);
-
-    				for(j=0; j<cols; j++) {
-    					var key1 = i+"_"+j;
-
-    					if(sets[i].sets.length > 1) {
-    						var x1 = (lines[i].start > 0)?cx + (lines[i].start * gap):cx;
-    						var x2 = x1 + ((lines[i].end - lines[i].start) * gap);
-    						// console.log("x1:", x1, "y1:", cy, "x2:", x2, "y2:", cy);
-
-    						row.append("line")
-    							.attr("x1", x1)
-    							.attr("y1", cy)
-    							.attr("x2", x2)
-    							.attr("y2", cy);
-    					}
-
-    					row.append("circle")
-    						.attr("cx", cx+j*gap)
-    						.attr("cy", cy)
-    						.attr("r", r)
-    						.attr("class", assigned[key1]?assigned[key1]:"not-assigned");
-    				}
-
-    				row.append("text")
-    					.attr("x", cx+cols*gap)
-    					.attr("y", cy+rowPadding)
-    					.text(sets[i].size)
-    					.attr("font-family", "sans-serif")
-    					.attr("font-size", "15px");
-
-
-
-    			}
-    }
     function mouseClick(div){
 
 
@@ -650,7 +667,7 @@ openModal(){
     }
 const {GM_a,GB_a,PW_a,DM_a,PROT_a,DBANK_a, selectedValue,key,checked,preview,pwaccessionresult,mfaccessionresult,bpaccessionresult,dmaccessionresult,dbankaccessionresult} =this.state;
 const { open,visible } = this.state;
-//console.log(GM_a[0]);
+let { isLoading } = this.state;
 let value_GM =GM_a;
 let value_GB=GB_a;
 let value_PW=PW_a;
@@ -709,7 +726,7 @@ let data ;
                   ];
 
 
-                  drawUpset(sets);
+                  this.drawUpset(sets);
                   tsvData=PROT_a.slice(0);
 
 
@@ -723,7 +740,7 @@ let data ;
                     { sets: [0],"label": GM_a.length+ '' , size: GM_a.length},
                   ];
 
-                  drawUpset(sets)
+                  this.drawUpset(sets)
 
 
 
@@ -734,7 +751,7 @@ let data ;
                   { sets: [0],"label": GB_a.length+ '' , size: GB_a.length},
                 ];
 
-                drawUpset(sets)
+                this.drawUpset(sets)
 
 
 
@@ -745,7 +762,7 @@ let data ;
                   { sets: [0],"label": PW_a.length+ '' , size: PW_a.length},
                 ];
 
-                drawUpset(sets)
+                this.drawUpset(sets)
 
 
 
@@ -758,7 +775,7 @@ let data ;
                 ];
 
 
-                drawUpset(sets)
+                this.drawUpset(sets)
 
 
                 }
@@ -769,7 +786,7 @@ let data ;
                ];
 
 
-               drawUpset(sets)
+               this.drawUpset(sets)
 
 
                }
@@ -886,9 +903,7 @@ let data ;
               tsvData[i].go_id= tsvData[i].go_id.replace(/(<([^>]+)>)/ig, '')
         //      tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
               tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
-
-
-            }
+          }
 
       }
       else if(key===3){
@@ -897,9 +912,7 @@ let data ;
             tsvData[i].go_id= tsvData[i].go_id.replace(/(<([^>]+)>)/ig, '')
     //        tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
             tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
-
-
-          }
+        }
 
       }
       else if(key===4){
@@ -909,35 +922,25 @@ let data ;
             tsvData[i].ipr_id= tsvData[i].ipr_id.replace(/(<([^>]+)>)/ig, '')
     //        tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
             tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
-
-
-          }
+        }
 
 
       }
       else if(key===5){
         tsvData= JSON.parse(JSON.stringify(DM_a));
-        //console.log(DM_a);
         for(var i in tsvData){
             tsvData[i].ipr= tsvData[i].ipr.replace(/(<([^>]+)>)/ig, '')
       //      tsvData[i].name= tsvData[i].name.replace(/(<([^>]+)>)/ig, '')
             tsvData[i].parents= tsvData[i].parents.replace(/(<([^>]+)>)/ig, '')
-
-
-          }
+        }
 
       }
 
       else if(key===6){
         tsvData= JSON.parse(JSON.stringify(DBANK_a));
-        //console.log(DM_a);
         for(var i in tsvData){
             tsvData[i].idurl= tsvData[i].idurl.replace(/(<([^>]+)>)/ig, '')
-
-
-
-
-          }
+        }
 
       }
 
@@ -1042,165 +1045,179 @@ let data ;
 
     return (
 
-      <div className="ResultPage">
+      <div className="ResultPageMain">
+      {isLoading ? (
+                <div className="ResultPage">
+                  <Loading/>
+                </div>
 
-        <div className="right">
-          <p className="query1_preview"> Q1:{words[0]}</p>
-        <Switch
-          onChange={this.handleChange2}
-          checked={this.state.checked}
-          id="normal-switch"
-          offColor="#5cb85c"
-          onColor="#5cb85c"
-
-          uncheckedIcon={
-        <div
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-
-            fontSize: 12,
-            color: "white",
-            paddingLeft: -10,
-            display: 'inline-block',
-            marginTop: 5,
-            fontWeight: 'bold',
-          }}
-        >
-        VENN
-
-        </div>
-      }
-      checkedIcon={
-        <div
-          style={{
-            justifyContent: "center",
-            alignItems: "center",
-            fontSize: 12,
-            color: "white",
-            paddingRight: 80,
-            display: 'inline-block',
-            marginTop: 5,
-            fontWeight: 'bold',
-            marginLeft:4
-
-          }}
-        >
-          UPSET
-        </div>
-      }
-      height={25}
-      width={70}
-        />
-
-
-        <div id="upset" />
-        {checkBoxComponent}
-        <div id="upset2" ref={ diagram => this.diagram = diagram } className='test-venn-diagram' onChange={this.handleChange}/>
+              ) : (
 
 
 
-        </div>
+                <div className="ResultPage">
+                       <div className="right">
+                         <p className="query1_preview"> Q1:{words[0]}</p>
+                       <Switch
+                         onChange={this.handleChange2}
+                         checked={this.state.checked}
+                         id="normal-switch"
+                         offColor="#5cb85c"
+                         onColor="#5cb85c"
 
-        <div className="left">
-            <div className="button_top">
+                         uncheckedIcon={
+                       <div
+                         style={{
+                           justifyContent: "center",
+                           alignItems: "center",
 
-              <Link to="/"><button className="add_query" onClick={this.closeConnection}>New Query </button></Link>
-              <CSVLink data={tsvData} filename={"prosetcomp.tsv"} separator={"\t"} ><button className="exportTSV">Export TSV</button></CSVLink>
+                           fontSize: 12,
+                           color: "white",
+                           paddingLeft: -10,
+                           display: 'inline-block',
+                           marginTop: 5,
+                           fontWeight: 'bold',
+                         }}
+                       >
+                       VENN
 
-            </div>
-              <Tabs className="myClass" defaultActiveKey={1} id="uncontrolled-tab-example" onSelect={this.handleSelect}>
+                       </div>
+                     }
+                     checkedIcon={
+                       <div
+                         style={{
+                           justifyContent: "center",
+                           alignItems: "center",
+                           fontSize: 12,
+                           color: "white",
+                           paddingRight: 80,
+                           display: 'inline-block',
+                           marginTop: 5,
+                           fontWeight: 'bold',
+                           marginLeft:4
 
-                <Tab eventKey={1} title="Protein">
-                    <BootstrapTable  ref='tablePROT' data={ value_PROT } trClassName={ trClassFormat } options={this.options}  pagination  >
-                        <TableHeaderColumn ref='nameCol' width={'15%'} dataField='accession' dataFormat={ this.formatNameAccession } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>ACCESSION</TableHeaderColumn>
-                        <TableHeaderColumn dataField='name' dataFormat={ this.formatNameName } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>NAME</TableHeaderColumn>
-                        <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } }>TAXON ID</TableHeaderColumn>
-                        <TableHeaderColumn width={'20%'} dataField='taxon_name'dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>TAXON NAME</TableHeaderColumn>
-                        <TableHeaderColumn width={'15%'} dataField='is_reviewed'  dataAlign='center' dataSort >IS REVIEWED</TableHeaderColumn>
-                        <TableHeaderColumn  dataAlign='center' dataFormat={this.formatLinksProtein}>LINKS</TableHeaderColumn>
-                    </BootstrapTable>
-
-                </Tab>
-
-                <Tab eventKey={2} title="Molecular Function">
-                  <BootstrapTable   data={ value_GM } trClassName={ trClassFormat } pagination >
-                      <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort >GO TERM ID </TableHeaderColumn>
-                      <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
-                      <TableHeaderColumn width={'15%'} dataField='depth'dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
-                        <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionMolecular.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
-                  </BootstrapTable>
-                </Tab>
-
-
-
-                  <Tab eventKey={3} title="Biological Process">
-                      <BootstrapTable   data={ value_GB } trClassName={ trClassFormat } pagination >
-                          <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>GO TERM ID</TableHeaderColumn>
-                          <TableHeaderColumn dataField='parents' dataFormat={this.formatNameParents} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
-                          <TableHeaderColumn width={'15%'} dataField='depth' dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
-                          <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionBiological.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
-                      </BootstrapTable>
-                       </Tab>
-
-                 <Tab eventKey={4} title="Pathway">
-                     <BootstrapTable   data={ value_PW } trClassName={ trClassFormat } options={ options }
-                    pagination >
-                         <TableHeaderColumn dataField='ipr_id' expandable={ false } dataFormat={ this.formatNameIpr_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>REACTOME ID</TableHeaderColumn>
-                       <TableHeaderColumn dataField='parents' expandable={ false } dataFormat={this.formatNameParentsForPathway} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } }>PARENTS</TableHeaderColumn>
-                        <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionPathway.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
-                     </BootstrapTable>
+                         }}
+                       >
+                         UPSET
+                       </div>
+                     }
+                     height={25}
+                     width={70}
+                       />
 
 
-                  </Tab>
-                  <Tab eventKey={5} title="Domain">
-                  <BootstrapTable   data={ value_DM }  trClassName={ trClassFormat } pagination >
-                      <TableHeaderColumn dataField='ipr' dataFormat={ this.formatNameIpr } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>IPR</TableHeaderColumn>
-                      <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } }>PARENTS</TableHeaderColumn>
-                        <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDomain.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                       <div id="upset" />
+                       {checkBoxComponent}
 
-                  </BootstrapTable>
-
-                  </Tab>
-                  <Tab eventKey={6} title="DrugBank">
-                  <BootstrapTable   data={ value_DBANK}  trClassName={ trClassFormat } pagination >
-
-                  <TableHeaderColumn dataField='idurl' isKey dataFormat={this.formatIdUrl} dataSort filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ID URL</TableHeaderColumn>
-                  <TableHeaderColumn dataField='name' dataAlign='center'  >NAME</TableHeaderColumn>
-                  <TableHeaderColumn width={'15%'} dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
-                  <TableHeaderColumn width={'25%'} dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
-                  <TableHeaderColumn width={'30%'}dataField='action' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ACTION</TableHeaderColumn>
-                  <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDrugBank.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
-                  </BootstrapTable>
-                  </Tab>
-
-              </Tabs>
+                       <div id="upset2" ref={ diagram => this.diagram = diagram } className='test-venn-diagram' onChange={this.handleChange}/>
 
 
 
+                       </div>
 
-              <Modal open={open} onClose={this.onCloseModal}>
-              <h2>RELATED PROTEINS</h2>
-                <BootstrapTable  ref='table'  data={data}  trClassName={ trClassFormat } options={this.options}   pagination  >
-                <TableHeaderColumn ref='nameCol' width={'15%'} dataField='accession' dataFormat={ this.formatNameAccession } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>ACCESSION</TableHeaderColumn>
-                <TableHeaderColumn dataField='name' dataFormat={ this.formatNameName } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>NAME</TableHeaderColumn>
-                <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } }>TAXON ID</TableHeaderColumn>
-                <TableHeaderColumn width={'20%'} dataField='taxon_name'dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>TAXON NAME</TableHeaderColumn>
-                <TableHeaderColumn width={'15%'} dataField='is_reviewed'  dataAlign='center' dataSort >IS REVIEWED</TableHeaderColumn>
-                <TableHeaderColumn  dataAlign='center' dataFormat={this.formatLinksProtein}>LINKS</TableHeaderColumn>
-                  </BootstrapTable>
+                               <div className="left">
+                                   <div className="button_top">
 
-              </Modal>
+                                     <Link to="/"><button className="add_query" onClick={this.closeConnection}>New Query </button></Link>
+                                     <CSVLink data={tsvData} filename={"prosetcomp.tsv"} separator={"\t"} ><button className="exportTSV">Export TSV</button></CSVLink>
 
-              <button className="leftbutton"></button>
+                                   </div>
+                                     <Tabs className="myClass" defaultActiveKey={1} id="uncontrolled-tab-example" onSelect={this.handleSelect}>
+
+                                       <Tab eventKey={1} title="Protein">
+                                           <BootstrapTable  ref='tablePROT' data={ value_PROT } trClassName={ trClassFormat } options={this.options}  pagination  >
+                                               <TableHeaderColumn ref='nameCol' width={'15%'} dataField='accession' dataFormat={ this.formatNameAccession } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>ACCESSION</TableHeaderColumn>
+                                               <TableHeaderColumn dataField='name' dataFormat={ this.formatNameName } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>NAME</TableHeaderColumn>
+                                               <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } }>TAXON ID</TableHeaderColumn>
+                                               <TableHeaderColumn width={'20%'} dataField='taxon_name'dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>TAXON NAME</TableHeaderColumn>
+                                               <TableHeaderColumn width={'15%'} dataField='is_reviewed'  dataAlign='center' dataSort >IS REVIEWED</TableHeaderColumn>
+                                               <TableHeaderColumn  dataAlign='center' dataFormat={this.formatLinksProtein}>LINKS</TableHeaderColumn>
+                                           </BootstrapTable>
+
+                                       </Tab>
+
+                                       <Tab eventKey={2} title="Molecular Function">
+                                         <BootstrapTable   data={ value_GM } trClassName={ trClassFormat } pagination >
+                                             <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort >GO TERM ID </TableHeaderColumn>
+                                             <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
+                                             <TableHeaderColumn width={'15%'} dataField='depth'dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
+                                               <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionMolecular.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                                         </BootstrapTable>
+                                       </Tab>
+
+
+
+                                         <Tab eventKey={3} title="Biological Process">
+                                             <BootstrapTable   data={ value_GB } trClassName={ trClassFormat } pagination >
+                                                 <TableHeaderColumn dataField='go_id' dataFormat={ this.formatNameGo_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>GO TERM ID</TableHeaderColumn>
+                                                 <TableHeaderColumn dataField='parents' dataFormat={this.formatNameParents} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >PARENTS</TableHeaderColumn>
+                                                 <TableHeaderColumn width={'15%'} dataField='depth' dataAlign='center' dataSort >DEPTH</TableHeaderColumn>
+                                                 <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionBiological.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                                             </BootstrapTable>
+                                              </Tab>
+
+                                        <Tab eventKey={4} title="Pathway">
+                                            <BootstrapTable   data={ value_PW } trClassName={ trClassFormat } options={ options }
+                                           pagination >
+                                                <TableHeaderColumn dataField='ipr_id' expandable={ false } dataFormat={ this.formatNameIpr_Id } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>REACTOME ID</TableHeaderColumn>
+                                              <TableHeaderColumn dataField='parents' expandable={ false } dataFormat={this.formatNameParentsForPathway} filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } }>PARENTS</TableHeaderColumn>
+                                               <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionPathway.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                                            </BootstrapTable>
+
+
+                                         </Tab>
+                                         <Tab eventKey={5} title="Domain">
+                                         <BootstrapTable   data={ value_DM }  trClassName={ trClassFormat } pagination >
+                                             <TableHeaderColumn dataField='ipr' dataFormat={ this.formatNameIpr } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>IPR</TableHeaderColumn>
+                                             <TableHeaderColumn dataField='parents' dataFormat={ this.formatNameParents } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } }>PARENTS</TableHeaderColumn>
+                                               <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDomain.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+
+                                         </BootstrapTable>
+
+                                         </Tab>
+                                         <Tab eventKey={6} title="DrugBank">
+                                         <BootstrapTable   data={ value_DBANK}  trClassName={ trClassFormat } pagination >
+
+                                         <TableHeaderColumn dataField='idurl' isKey dataFormat={this.formatIdUrl} dataSort filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ID URL</TableHeaderColumn>
+                                         <TableHeaderColumn dataField='name' dataAlign='center'  >NAME</TableHeaderColumn>
+                                         <TableHeaderColumn width={'15%'} dataField='syn' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >SYN</TableHeaderColumn>
+                                         <TableHeaderColumn width={'25%'} dataField='def' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >DEFINITION</TableHeaderColumn>
+                                         <TableHeaderColumn width={'30%'}dataField='action' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter ' } } >ACTION</TableHeaderColumn>
+                                         <TableHeaderColumn dataField="button" dataFormat={this.buttonFunctionDrugBank.bind(this)}>RELATED PROTEINS</TableHeaderColumn>
+                                         </BootstrapTable>
+                                         </Tab>
+
+                                     </Tabs>
 
 
 
 
+                                     <Modal open={open} onClose={this.onCloseModal}>
+                                     <h2>RELATED PROTEINS</h2>
+                                       <BootstrapTable  ref='table'  data={data}  trClassName={ trClassFormat } options={this.options}   pagination  >
+                                       <TableHeaderColumn ref='nameCol' width={'15%'} dataField='accession' dataFormat={ this.formatNameAccession } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } isKey dataSort>ACCESSION</TableHeaderColumn>
+                                       <TableHeaderColumn dataField='name' dataFormat={ this.formatNameName } filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>NAME</TableHeaderColumn>
+                                       <TableHeaderColumn  width={'10%'} dataField='taxon_id' dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } }>TAXON ID</TableHeaderColumn>
+                                       <TableHeaderColumn width={'20%'} dataField='taxon_name'dataAlign='center' filter={ { type: 'TextFilter', delay: 1000 , placeholder: 'Filter' } } dataSort>TAXON NAME</TableHeaderColumn>
+                                       <TableHeaderColumn width={'15%'} dataField='is_reviewed'  dataAlign='center' dataSort >IS REVIEWED</TableHeaderColumn>
+                                       <TableHeaderColumn  dataAlign='center' dataFormat={this.formatLinksProtein}>LINKS</TableHeaderColumn>
+                                         </BootstrapTable>
+
+                                     </Modal>
+
+                                     <button className="leftbutton"></button>
 
 
 
-        </div>
+
+
+
+
+                                 </div>
+                            </div>
+
+              )}
+
 
 
 
